@@ -437,6 +437,7 @@
         '<div class="ui-footer-links">' +
         '<a href="#landing" data-go="landing">About</a>' +
         '<a href="#learn" data-go="learn">Learn screenwriting</a>' +
+        '<a href="https://prepsto.com/#f/bz9rpjj" target="_blank" rel="noopener" data-prepsto-open>Suggest an idea</a>' +
         '<button type="button" data-feedback>Send feedback</button>' +
         '<button type="button" data-lk-open="overview">Privacy &amp; Terms</button>' +
         '</div><p class="ui-footer-legal small muted">© ' + new Date().getFullYear() + ' ' + esc(UI.config.name) + '</p></div>';
