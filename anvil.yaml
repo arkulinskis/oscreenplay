@@ -269,7 +269,7 @@ metadata:
   title: 'OScreenplay: write a better screenplay, from idea to pages'
 name: OScreenplay
 native_deps:
-  head_html: "<script src=\"_/theme/legal-kit.js?v=c72bb42087\"></script>\n<!-- seo:start (APP_MAKER/seo: edit seo/apps/oscreenplay.json\
+  head_html: "<script src=\"_/theme/legal-kit.js?v=c7afb1d773\"></script>\n<!-- seo:start (APP_MAKER/seo: edit seo/apps/oscreenplay.json\
     \ and run seo.py, not here) -->\n<link rel=\"canonical\" href=\"https://oscreenplay.com/\">\n<meta name=\"robots\" content=\"\
     index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1\">\n<meta name=\"keywords\" content=\"screenwriting\
     \ software, screenplay editor online, story idea generator, logline generator, story circle, character builder, screenplay\
