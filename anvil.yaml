@@ -269,7 +269,7 @@ metadata:
   title: 'OScreenplay: write a better screenplay, from idea to pages'
 name: OScreenplay
 native_deps:
-  head_html: "<script src=\"_/theme/legal-kit.js?v=c7afb1d773\"></script>\n<!-- seo:start (APP_MAKER/seo: edit seo/apps/oscreenplay.json\
+  head_html: "<script src=\"_/theme/legal-kit.js?v=f63bee56e5\"></script>\n<!-- seo:start (APP_MAKER/seo: edit seo/apps/oscreenplay.json\
     \ and run seo.py, not here) -->\n<link rel=\"canonical\" href=\"https://oscreenplay.com/\">\n<meta name=\"robots\" content=\"\
     index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1\">\n<meta name=\"keywords\" content=\"screenwriting\
     \ software, screenplay editor online, story idea generator, logline generator, story circle, character builder, screenplay\
@@ -314,7 +314,7 @@ native_deps:
     })();\n</script>\n\n<!-- Prepsto feedback panel: every \"Submit feedback\" link and button opens it (it is the only feedback\
     \ channel). No floating button, no cookies, nothing loads until it is opened. Codes: APP_MAKER/prepsto-links.json -->\n\
     <script src=\"https://prepsto.com/_/theme/widget.js\" data-prepsto=\"bz9rpjj\" data-button=\"false\" data-label=\"Submit\
-    \ feedback\" async></script>\n<link rel=\"stylesheet\" href=\"_/theme/app.css?v=c553f37c95\">\n<script src=\"_/theme/app.js?v=e874b8ee99\"\
+    \ feedback\" async></script>\n<link rel=\"stylesheet\" href=\"_/theme/app.css?v=e6ab1219a6\">\n<script src=\"_/theme/app.js?v=7cb9c9bf71\"\
     ></script>\n"
 package_name: OScreenplay
 runtime_options:
@@ -335,9 +335,13 @@ services:
     remember_me_days: 30
     require_secure_passwords: true
     use_email: true
+    use_google: true
   server_config:
     user_table: users
   source: /runtime/services/anvil/users.yml
+- client_config: {}
+  server_config: {}
+  source: /runtime/services/google.yml
 startup:
   module: Main
   type: form
