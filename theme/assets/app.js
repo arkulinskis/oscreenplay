@@ -3268,6 +3268,21 @@
 })();
 
 /* ===== landing.html ===== */
+// Watch section: swap the video's cover for YouTube's player (privacy-enhanced) only when it's pressed.
+  if (!window.__ytFilm) {
+    window.__ytFilm = true;
+    document.addEventListener('click', function (e) {
+      var b = e.target && e.target.closest ? e.target.closest('[data-yt-film]') : null;
+      if (!b) return;
+      var f = document.createElement('iframe');
+      f.src = 'https://www.youtube-nocookie.com/embed/' + b.getAttribute('data-yt-film') + '?autoplay=1&rel=0&playsinline=1';
+      f.title = b.getAttribute('data-yt-title') || 'Video';
+      f.allow = 'autoplay; encrypted-media; picture-in-picture; fullscreen';
+      f.allowFullscreen = true;
+      f.referrerPolicy = 'strict-origin-when-cross-origin';
+      b.parentNode.replaceChild(f, b);
+    });
+  }
 (function () {
   var COPY = {
     eyebrow: 'A writer\'s room for one',
@@ -3329,6 +3344,7 @@
         '<div class="lp-cta">' + primary + '</div>' +
         '<div class="lp-proof">' + C.proof.map(function (p) { return '<span>' + UI.icon('check') + esc(p) + '</span>'; }).join('') + '</div>' +
       '</div><div data-reel></div></div></section>' +
+      '<section class="lp-section ytf" id="watch"><div class="ui-wrap"><div class="ytf-in"><div class="ytf-copy"><div class="eyebrow"><svg viewBox="0 0 28 20" width="20" height="14" aria-hidden="true"><rect width="28" height="20" rx="5" fill="#FF0033"/><path d="M11.2 5.8v8.4l7.3-4.2z" fill="#fff"/></svg>Watch</div><h2>See OScreenplay in about a minute</h2><p>A short video tour of what OScreenplay does and how it works.</p><a class="ytf-link" href="https://www.youtube.com/watch?v=niJntt5oVNU" target="_blank" rel="noopener">Watch on YouTube &#8599;</a></div><div><div class="ytf-frame"><button type="button" class="ytf-cover" data-yt-film="niJntt5oVNU" data-yt-title="OScreenplay video" aria-label="Play the OScreenplay video (1:10)"><img src="_/theme/yt-cover.jpg" alt="" loading="lazy" decoding="async" width="960" height="540"><span class="ytf-play" aria-hidden="true"><svg viewBox="0 0 68 48" width="68" height="48"><path d="M66.5 7.7a8.5 8.5 0 0 0-6-6C55.3.3 34 .3 34 .3s-21.3 0-26.5 1.4a8.5 8.5 0 0 0-6 6C.1 13 .1 24 .1 24s0 11 1.4 16.3a8.5 8.5 0 0 0 6 6c5.2 1.4 26.5 1.4 26.5 1.4s21.3 0 26.5-1.4a8.5 8.5 0 0 0 6-6C67.9 35 67.9 24 67.9 24s0-11-1.4-16.3z" fill="#FF0033"/><path d="M45 24 27 14v20z" fill="#fff"/></svg></span><span class="ytf-len">1:10</span></button></div><p class="ytf-note">The video loads from YouTube when you press play.</p></div></div></div></section>' +
       '<section class="lp-section" id="how"><div class="ui-wrap"><div class="lp-head"><div class="eyebrow">How it works</div><h2>' + esc(C.stepsTitle) + '</h2><p>' + esc(C.stepsLead) + '</p></div>' +
         '<div class="lp-steps">' + C.steps.map(function (s, i) { return '<div class="lp-step"><span class="os-tc">0' + (i + 1) + ' / 05</span><h3>' + esc(s[0]) + '</h3><p>' + esc(s[1]) + '</p></div>'; }).join('') + '</div></div></section>' +
       '<section class="lp-section"><div class="ui-wrap"><div class="lp-split"><div class="os-night"><div class="lp-wheel">' + OS.svg.wheel({ night: true, labels: true }) + '</div></div>' +
