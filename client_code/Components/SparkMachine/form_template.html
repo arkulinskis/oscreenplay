@@ -1,0 +1,17 @@
+---
+custom_component: true
+properties: []
+events:
+  - name: change
+    description: A word was swapped or locked in the machine (slot = the slot's key, empty for a lock)
+    parameters:
+      - name: slot
+toolbox_item:
+  title: Spark machine
+  group: OScreenplay
+help_text: |
+  The story slot machine's text: the title chip and the abstract with swappable words, drawn by the engine
+  (window.OSF.drawMachine, os-ui.js) with the swap popovers of OS.sparkMachine. attach(st, on_change) binds it to a
+  spark state (a JavaScript object from window.OSF.sparkState / reelState); draw(changed, swap) redraws it.
+---
+<div class="sk-wrap"><div class="sk-host" anvil:dom-node="host" aria-live="polite"></div></div>

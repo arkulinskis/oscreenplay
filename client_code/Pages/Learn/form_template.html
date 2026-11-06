@@ -1,0 +1,118 @@
+<anvil-form layout="OScreenplay.Layouts.Shell">
+  <anvil-block slot="content">
+
+    <div class="ui-wrap">
+      <div class="os-head"><div><h1>How to write a screenplay.</h1><p class="muted">Everything a first script needs, and the theory behind the tools. Fifteen minutes of reading saves fifty pages of rewriting.</p></div></div>
+      <div class="ln-layout">
+        <nav class="ln-toc" aria-label="Sections" anvil:dom-node="toc">
+          <a href="#learn/format" data-sec="format" anvil:on-dom:click="self.toc_click">Format in 10 minutes</a>
+          <a href="#learn/circle" data-sec="circle" anvil:on-dom:click="self.toc_click">The Story Circle</a>
+          <a href="#learn/structures" data-sec="structures" anvil:on-dom:click="self.toc_click">Other structures</a>
+          <a href="#learn/godfather" data-sec="godfather" anvil:on-dom:click="self.toc_click">Godfather masterclass</a>
+          <a href="#learn/character" data-sec="character" anvil:on-dom:click="self.toc_click">Character craft</a>
+          <a href="#learn/scenes" data-sec="scenes" anvil:on-dom:click="self.toc_click">Scene craft</a>
+          <a href="#learn/dialogue" data-sec="dialogue" anvil:on-dom:click="self.toc_click">Dialogue</a>
+          <a href="#learn/glossary" data-sec="glossary" anvil:on-dom:click="self.toc_click">Glossary</a>
+          <a href="#learn/workflow" data-sec="workflow" anvil:on-dom:click="self.toc_click">How OScreenplay works</a>
+        </nav>
+        <article class="ln-art" anvil:dom-node="art">
+          <section class="ln-sec" id="ln-format">
+            <h2>Screenplay format in ten minutes</h2>
+            <p>A screenplay is a blueprint, not a novel: it describes only what the audience will see and hear, in a strict layout that lets anyone estimate the running time from the page count. Six elements do almost everything.</p>
+            <div class="ln-el"><div><h4>Scene heading</h4><p>Also called a slugline. INT. or EXT., the place, then the time. A new heading every time the place or time changes.</p></div><div class="os-paper ln-page os-scr"><div class="scene">INT. HARBOUR OFFICE - NIGHT</div></div></div>
+<div class="ln-el"><div><h4>Action</h4><p>What we see and hear, in the present tense. Short paragraphs, three or four lines at most. Introduce a character in CAPS with their age, once.</p></div><div class="os-paper ln-page os-scr"><div class="action">NORA KESSEL (29) stands at the window, coat still on. She is counting boats.</div></div></div>
+<div class="ln-el"><div><h4>Character</h4><p>The speaker&#x27;s name, in caps, above their line. Extensions in brackets: (V.O.) voice-over, (O.S.) off-screen, (CONT&#x27;D) continuing.</p></div><div class="os-paper ln-page os-scr"><div class="character">NORA (V.O.)</div></div></div>
+<div class="ln-el"><div><h4>Parenthetical</h4><p>A short note on how a line is said, or a tiny action. Use rarely: trust the actor.</p></div><div class="os-paper ln-page os-scr"><div class="character">GUS</div><div class="paren">(not looking up)</div><div class="dialogue">Sit.</div></div></div>
+<div class="ln-el"><div><h4>Dialogue</h4><p>What they say. Under the name, in a narrow column, so a page of talk reads fast.</p></div><div class="os-paper ln-page os-scr"><div class="character">ELI</div><div class="dialogue">Is that a good point or a bad point?</div></div></div>
+<div class="ln-el"><div><h4>Transition</h4><p>How we leave a scene: CUT TO:, SMASH CUT TO:, DISSOLVE TO:. Modern scripts use very few; a new scene heading already means a cut.</p></div><div class="os-paper ln-page os-scr"><div class="transition">SMASH CUT TO:</div></div></div>
+            <h3>A page, put together</h3>
+            <div class="os-paper ln-page os-scr"><div class="scene">EXT. KESSEL DOCKS - WEDDING RECEPTION - DAY</div><div class="action">A brass band. A hundred fishermen in borrowed suits. MARTA KESSEL (34), radiant and already a little drunk, dances with everyone except her new husband.</div><div class="character">MARTA</div><div class="paren">(close, a whisper)</div><div class="dialogue">Look who came home. Don't sit in it. It's not yours.</div><div class="action">Her phone buzzes. The smile drops off her face for one beat.</div><div class="transition">CUT TO:</div></div>
+            <h3>Rules of thumb</h3>
+            <div class="ln-rules"><div><b>One page ≈ one minute</b>A feature runs 90 to 120 pages; a half-hour pilot about 30.</div><div><b>Present tense, active voice</b>&quot;She opens the door&quot;, never &quot;She is opening&quot;.</div><div><b>Only what we can see or hear</b>No thoughts, no backstory in action lines. Show it, or let someone say it.</div><div><b>White space is pace</b>Short lines read fast. Dense blocks slow the read and the film.</div><div><b>Courier 12, standard margins</b>OScreenplay does the layout; export to Fountain or print to PDF.</div><div><b>Don&#x27;t direct the camera</b>Write the moment; a shot only when the story needs that exact image.</div><div><b>Special formats</b>MONTAGE, SERIES OF SHOTS, INTERCUT, FLASHBACK, SUPER: (text on screen), PRE-LAP (sound before the cut).</div><div><b>Name your scenes for the reader</b>Keep location names consistent, so the reader always knows where they are.</div></div>
+            <p class="muted">In the Pages tab, Enter and Tab move between elements the way professional software does: after a character name comes dialogue, Tab on an empty action line makes a character, and typing INT. turns a line into a scene heading.</p>
+          </section>
+          <section class="ln-sec" id="ln-circle">
+            <h2>The Story Circle</h2>
+            <p>Dan Harmon, co-creator of Rick and Morty and Community, boiled Joseph Campbell's hero's journey down to eight steps on a circle. His writers' rooms famously break episodes on it: a full circle can fit in eleven minutes or two hours, and the A story and B story can each run their own.</p>
+            <div class="ln-circle">
+              <div class="os-night"><anvil-component type="OScreenplay.Components.Wheel" name="wheel"></anvil-component></div>
+              <div class="ln-step">
+                <anvil-component type="Label" name="step_meta" prop:role='["os-meta"]'></anvil-component>
+                <anvil-component type="Label" name="step_n" prop:role='["ln-step-n"]'></anvil-component>
+                <p><b anvil:dom-node="step_d"></b></p>
+                <p anvil:dom-node="step_q"></p>
+                <p class="muted small" anvil:dom-node="step_mirror"></p>
+                <div class="ui-row"><anvil-component type="Button" name="prev_button" prop:text="Previous" prop:role='["btn", "btn-sm", "ic-back"]'></anvil-component><anvil-component type="Button" name="next_button" prop:text="Next" prop:role='["btn", "btn-sm", "ic-arrow"]'></anvil-component></div>
+              </div>
+            </div>
+            <h3>Why it works</h3>
+            <ul>
+              <li><b>Order above, chaos below.</b> Steps 1 and 2 (and 8) are the familiar world; steps 3 to 7 descend into the unfamiliar and climb back out. Every story is a trip down and back up.</li>
+              <li><b>Opposites face each other.</b> You (1) and Find (5) mirror each other, as do Need (2) and Take (6), Go (3) and Return (7), Search (4) and Change (8). If step 5 doesn't echo step 1, the circle wobbles.</li>
+              <li><b>Get, then pay.</b> The hero gets what they wanted at the halfway point, and it costs them. That cost is what changes them.</li>
+              <li><b>It's fractal.</b> A whole film, an act, a scene, even a single joke can run the circle.</li>
+            </ul>
+            <p>Try it: the <b>There Is No Bull</b> sample is an eight-scene circle that grew from a single Spark. Every project shows its scene cards on the wheel, so an empty step is impossible to miss.</p>
+          </section>
+          <section class="ln-sec" id="ln-structures">
+            <h2>The other structures</h2>
+            <p>Every structure describes the same animal from a different angle. Pick the one that helps you think; switch later and OScreenplay moves each card to the nearest beat. The percentages show where each beat usually falls.</p>
+            <anvil-component type="RepeatingPanel" name="structs_panel" prop:item_template="OScreenplay.Items.StructureCard"></anvil-component>
+          </section>
+          <section class="ln-sec" id="ln-godfather">
+            <h2>What The Godfather teaches</h2>
+            <p>Francis Ford Coppola and Mario Puzo's 1972 film is studied in film schools for its structure, its scenes and its arc. Here are eleven lessons you can use tomorrow, scene by scene. (Watch the film; the lessons describe it rather than quote it.)</p>
+            <div class="ln-lesson"><div class="no">1</div><div><h4>Open with a ritual that introduces everyone</h4><p>The film begins at a wedding: a bright public party outside, private business in a dark office inside. Every guest who visits the head of the family wants something, so each character is introduced through a request.</p><p class="take"><b>Use it:</b> Introduce characters through what they want, and set two worlds against each other in one location.</p></div></div>
+<div class="ln-lesson"><div class="no">2</div><div><h4>Make the hero&#x27;s starting position unmistakable</h4><p>Michael arrives in uniform, with an outsider, and explains his family to her from a distance. His stance is clear: that&#x27;s them, not me. The whole film is the measured destruction of that sentence.</p><p class="take"><b>Use it:</b> State where the protagonist starts as clearly as you can. An arc is only visible against a clear starting point.</p></div></div>
+<div class="ln-lesson"><div class="no">3</div><div><h4>The threshold can be a quiet act of care</h4><p>At the hospital, Michael finds his father unprotected and decides to stand guard. No gun is fired. He simply chooses the family for one night, and the audience goes with him because the choice is loving.</p><p class="take"><b>Use it:</b> Let the point of no return be an action the audience agrees with. They&#x27;ll follow your hero into the dark.</p></div></div>
+<div class="ln-lesson"><div class="no">4</div><div><h4>Suspense is information plus waiting</h4><p>Before the restaurant scene, we learn exactly where a hidden gun will be. So every second of the dinner is unbearable: will it be there, will he do it? The conversation runs in a language without subtitles, and a passing train swells on the soundtrack as he decides.</p><p class="take"><b>Use it:</b> Tell the audience what&#x27;s at stake before the characters act, then make them wait. Use sound to make an inner state audible.</p></div></div>
+<div class="ln-lesson"><div class="no">5</div><div><h4>One image beats a threat speech</h4><p>A powerful man refuses a favour and wakes up to an image so shocking it needs no dialogue at all. The family&#x27;s reach is established for the rest of the film in a single shot.</p><p class="take"><b>Use it:</b> Escalate with an image, not an explanation. The audience will never forget it, and nobody has to say the threat out loud.</p></div></div>
+<div class="ln-lesson"><div class="no">6</div><div><h4>Supporting characters as roads not taken</h4><p>Each brother is a version of what Michael could become: one ruled by temper, one by weakness, and the adopted son who has the logic but not the blood. Each fails exactly the way his nature predicts.</p><p class="take"><b>Use it:</b> Build the supporting cast as mirrors of your hero&#x27;s possible paths. The Web tab is built for this.</p></div></div>
+<div class="ln-lesson"><div class="no">7</div><div><h4>A mentor&#x27;s last scene is a setup</h4><p>In a quiet garden, the retired father tells Michael how the betrayal will come: whoever brings him a peace meeting is the traitor. Then he dies playing with his grandson. Later the prediction comes true, word for word.</p><p class="take"><b>Use it:</b> Give the mentor&#x27;s final scene a plant, so their death leaves the hero alone with knowledge they must use.</p></div></div>
+<div class="ln-lesson"><div class="no">8</div><div><h4>Cross-cut so each action comments on the other</h4><p>The baptism: Michael renounces evil at the altar while, across the city, his enemies are killed on his orders. Sacrament and murder intercut. He becomes a godfather in both senses at once.</p><p class="take"><b>Use it:</b> Intercut two actions to make the theme visible without anyone stating it.</p></div></div>
+<div class="ln-lesson"><div class="no">9</div><div><h4>End on a point of view</h4><p>The last scene answers the first. Kay asks the question; Michael lies; a door closes between her and the dark office, seen from her side. The hero has fully entered the room the film opened in.</p><p class="take"><b>Use it:</b> Let the final image mirror the opening image, changed. Choose whose eyes we end in.</p></div></div>
+<div class="ln-lesson"><div class="no">10</div><div><h4>A negative arc works when every step is reasonable</h4><p>From war hero who wants no part to head of the family, each of Michael&#x27;s choices makes sense from inside. We half agree with every step, which is why the destination horrifies us.</p><p class="take"><b>Use it:</b> For a corruption arc, motivate every step so well that the audience is complicit.</p></div></div>
+<div class="ln-lesson"><div class="no">11</div><div><h4>Think in movements</h4><p>The film moves in self-contained sequences: the wedding, the shooting, the hospital, the restaurant, the exile, the return, the baptism. Each has its own question and its own climax.</p><p class="take"><b>Use it:</b> The Eight Sequences structure in OScreenplay builds exactly this. The Salt Debt sample uses it.</p></div></div>
+          </section>
+          <section class="ln-sec" id="ln-character">
+            <h2>Character craft</h2>
+            <p>A character is a set of pressures. OScreenplay asks for the ones that produce behaviour:</p>
+            <div class="ln-chain"><span>Wound<small>what happened</small></span><i>&#8594;</i><span>Lie<small>what they believe</small></span><i>&#8594;</i><span>Flaw<small>how it shows</small></span><i>&#8594;</i><span>Want<small>what they chase</small></span><i>&#8596;</i><span>Need<small>what would heal them</small></span></div>
+            <ul>
+              <li><b>Want and need pull apart.</b> The want drives the plot (get the money, win the duel); the need drives the arc (accept help, stop running). The climax forces a choice between them.</li>
+              <li><b>Arcs come in three shapes.</b> Positive: the hero unlearns the lie. Negative: the hero doubles down and is corrupted (Michael Corleone). Flat: the hero already knows the truth and changes the world around them.</li>
+              <li><b>Personality is a tool, not a horoscope.</b> The Big Five (openness, conscientiousness, extraversion, agreeableness, neuroticism) predict how people react under stress. The reaction engine in every character uses them, with the flaw, fear and values, to suggest what that person would logically do.</li>
+              <li><b>Every villain is the hero of their own story.</b> Give the antagonist a want, a wound and a reason they think they're right.</li>
+              <li><b>Voice is character.</b> Cover the names on a page of dialogue: can you still tell who's talking?</li>
+              <li><b>Conditions and illnesses</b> belong to people, not plots. Research them, talk to people who live with them, and never use them as a punchline or a twist.</li>
+            </ul>
+          </section>
+          <section class="ln-sec" id="ln-scenes">
+            <h2>Scene craft</h2>
+            <ul>
+              <li><b>Goal, conflict, outcome.</b> Someone wants something in this scene; someone or something is in the way; it ends with "yes, but", "no, and", or a clean win or loss.</li>
+              <li><b>Every scene turns.</b> A value (safety, love, hope) starts positive or negative and ends differently. If nothing changed, the scene can go. Each scene card has a charge in and a charge out; the Storyline draws them as your story's shape.</li>
+              <li><b>Arrive late, leave early.</b> Skip the hellos and the goodbyes; cut in when the conflict is already running.</li>
+              <li><b>Two jobs per scene.</b> Move the plot and reveal character, or plant a setup and pay off another.</li>
+              <li><b>Alternate.</b> Up, down, up. Four bleak scenes in a row numb an audience; the doctor flags it.</li>
+              <li><b>Tell it out of order on purpose.</b> The Chronology holds what happened; the Storyline holds what we see. A flash-forward opening, a flashback at the midpoint: the braid shows each one.</li>
+            </ul>
+            <p>Stuck? The <a href="#ideas/scenes">scene recipes</a> and the <a href="#ideas/complications">complications deck</a> are made for this.</p>
+          </section>
+          <section class="ln-sec" id="ln-dialogue">
+            <h2>Dialogue</h2>
+            <ul>
+              <li><b>People rarely say what they mean.</b> Write the surface, and let the subtext do the work. "Sit." can mean "I love you", "obey me" and "I'm dying".</li>
+              <li><b>Never let characters tell each other what they both know.</b> If the audience needs it, create a reason for someone not to know it.</li>
+              <li><b>Conflict in every exchange.</b> Even friends disagree about something small.</li>
+              <li><b>Short beats long.</b> Interruptions, unfinished sentences and silence are dialogue too.</li>
+              <li><b>Read it out loud.</b> Your ear catches what your eye forgives.</li>
+            </ul>
+          </section>
+          <section class="ln-sec" id="ln-glossary"><h2>Glossary</h2><div class="ln-gloss"><div><b>Logline</b>The story in one sentence: hero, goal, obstacle, stakes.</div><div><b>Premise</b>The &quot;what if&quot; behind the story.</div><div><b>Inciting incident</b>The event that starts the story; it happens TO the hero.</div><div><b>Plot point</b>A turn that sends the story in a new direction, usually at the act breaks.</div><div><b>Midpoint</b>The middle turn: the hero goes from reacting to acting, or a false victory becomes a defeat.</div><div><b>Want</b>The outer goal: what the character is trying to get.</div><div><b>Need</b>The inner truth they must learn, often the opposite of what they want.</div><div><b>Wound (ghost)</b>The past hurt that shaped them.</div><div><b>Lie</b>The false belief the wound planted. A positive arc unlearns it.</div><div><b>Arc</b>How a character changes (positive), is corrupted (negative) or changes others while staying the same (flat).</div><div><b>Beat</b>A unit of story. In a beat sheet, a structural moment; inside a scene, a single exchange of action and reaction.</div><div><b>Sequence</b>A run of scenes with its own mini-story, about 10 to 15 pages.</div><div><b>Setup and payoff</b>Plant something early, use it later. Also &quot;Chekhov&#x27;s gun&quot;.</div><div><b>Subtext</b>What a line really means under what it says.</div><div><b>On the nose</b>Dialogue that says exactly what the character feels. Usually a problem.</div><div><b>Value charge</b>The emotional value at stake in a scene (love, safety, freedom) and whether it ends positive or negative. Every scene should turn it.</div><div><b>Slugline</b>A scene heading: INT./EXT. LOCATION - TIME.</div><div><b>V.O. / O.S.</b>Voice-over (narration, not in the scene) and off-screen (in the scene, out of sight).</div><div><b>Cold open</b>A TV teaser before the titles.</div><div><b>Button</b>A last line or image that closes a scene with a snap.</div><div><b>Fountain</b>A plain-text screenplay format that most screenwriting apps can open.</div><div><b>Spec script</b>A script written on speculation, not commissioned.</div><div><b>Coverage</b>A reader&#x27;s report on a script for a producer.</div><div><b>MacGuffin</b>The object everyone wants; it matters because they want it.</div><div><b>Fabula and syuzhet</b>The events in the order they happened, and the order the story tells them. OScreenplay&#x27;s Chronology and Storyline.</div></div></section>
+          <section class="ln-sec" id="ln-workflow"><h2>How OScreenplay works</h2><ol class="ln-flow"><li><div><b><a href="#spark">Spark</a></b><span>Generate an abstract, swap the words, develop it: you get a logline, a cast, a chronology and eight scene cards.</span></div></li><li><div><b><a href="#home">Overview</a></b><span>Logline builder, theme, structure and the script doctor&#x27;s notes with a readiness score.</span></div></li><li><div><b><a href="#home">Cast</a></b><span>Want, need, wound, lie, flaw, fear, values, voice, Big Five. Ask how they&#x27;d react to a betrayal or a windfall.</span></div></li><li><div><b><a href="#home">Web</a></b><span>Connect characters with relationships and tension. Lonely characters get flagged.</span></div></li><li><div><b><a href="#home">Chronology</a></b><span>Events in the order they happened, backstory included. Rebuild it from scene cards in one click.</span></div></li><li><div><b><a href="#home">Storyline</a></b><span>Scene cards in telling order, grouped by beat, with the braid, the story shape and setups and payoffs.</span></div></li><li><div><b><a href="#home">Pages</a></b><span>Write the script, or draft it from the cards. Export Fountain, print to PDF.</span></div></li></ol></section>
+        </article>
+      </div>
+    </div>
+  </anvil-block>
+</anvil-form>

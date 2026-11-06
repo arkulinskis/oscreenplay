@@ -1,0 +1,19 @@
+<anvil-form layout="OScreenplay.Layouts.Shell">
+  <anvil-block slot="content">
+
+    <div class="ui-wrap">
+      <div class="os-head"><div><h1>Never stare at a blank field again.</h1><p class="muted" anvil:dom-node="lead"></p></div></div>
+      <div class="id-layout">
+        <nav class="id-nav" aria-label="Decks"><anvil-component type="RepeatingPanel" name="groups_panel" prop:item_template="OScreenplay.Items.DeckGroup"></anvil-component></nav>
+        <div>
+          <label class="id-select"><span class="ui-sr">Deck</span><anvil-component type="DropDown" name="deck_box"></anvil-component></label>
+          <div class="id-tools"><anvil-component type="TextBox" name="q_box" prop:placeholder="Search every deck…" prop:role='["id-q"]'></anvil-component><anvil-component type="Button" name="draw_button" prop:text="Draw a card" prop:role='["btn", "btn-primary", "ic-dice"]'></anvil-component></div>
+          <h2 anvil:dom-node="deck_title"></h2>
+          <p class="muted" anvil:dom-node="deck_about"></p>
+          <anvil-component type="RepeatingPanel" name="cards_panel" prop:item_template="OScreenplay.Items.IdeaCard" prop:role='["id-cards"]'></anvil-component>
+          <div class="ui-empty" anvil:name="no_hits"><i class="ic ic-search"></i><h3>Nothing matches</h3><p>Try a simpler word: "father", "secret", "fire".</p></div>
+        </div>
+      </div>
+    </div>
+  </anvil-block>
+</anvil-form>

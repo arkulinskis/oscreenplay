@@ -1,0 +1,41 @@
+<anvil-form layout="OScreenplay.Layouts.Shell">
+  <anvil-block slot="content">
+
+    <div class="ui-wrap">
+      <div class="os-head"><div><h1>Pull a story out of thin air.</h1><p class="muted">Every highlighted word is a slot. Click it to swap, lock what you love, pull again for the rest.</p></div></div>
+      <div class="sk-grid">
+        <div>
+          <div class="os-night sk-machine">
+            <anvil-component type="OScreenplay.Components.SparkMachine" name="machine"></anvil-component>
+            <div class="sk-act"><anvil-component type="Button" name="pull_button" prop:text="Pull" prop:role='["btn", "btn-primary", "btn-lg", "ic-dice"]'></anvil-component><anvil-component type="Button" name="back_button" prop:text="Back" prop:role='["btn", "btn-night", "ic-back"]'></anvil-component><span class="grow"></span><anvil-component type="Button" name="save_button" prop:text="Save" prop:role='["btn", "btn-night", "ic-heart"]'></anvil-component><anvil-component type="Button" name="develop_button" prop:text="Develop" prop:role='["btn", "btn-tungsten", "ic-arrow"]'></anvil-component></div>
+          </div>
+          <div class="sk-become">
+            <div class="ui-card">
+              <h2 class="sk-h">Logline</h2><anvil-component type="Label" name="logline" prop:role='["sk-logline"]'></anvil-component><anvil-component type="Button" name="copy_button" prop:text="Copy" prop:role='["btn", "btn-sm", "ic-copy"]'></anvil-component>
+              <h2 class="sk-h sk-theme-h">Theme</h2><anvil-component type="Label" name="theme"></anvil-component>
+            </div>
+            <div class="ui-card"><h2 class="sk-h">Story Circle</h2><anvil-component type="RepeatingPanel" name="circle_panel" prop:item_template="OScreenplay.Items.CircleLine"></anvil-component></div>
+            <div class="ui-card"><h2 class="sk-h">Starter cast</h2><anvil-component type="RepeatingPanel" name="cast_panel" prop:item_template="OScreenplay.Items.CastRow"></anvil-component><p class="os-help">Names and details are fresh each time you develop. Everything is editable later.</p></div>
+          </div>
+        </div>
+        <aside class="ui-stack">
+          <div class="ui-card sk-ctrl">
+            <label class="ui-field"><span>Genre</span><anvil-component type="DropDown" name="genre_box"></anvil-component></label>
+            <label class="sk-weird"><span>Weirdness <em class="muted" anvil:dom-node="weird_val"></em></span>
+              <input type="range" min="0" max="100" step="5" anvil:dom-node="weird" anvil:on-dom:input="self.weird_input" aria-label="Weirdness">
+              <span class="ends"><span>makes sense</span><span>vampire loves cow</span></span></label>
+            <div><span class="np-field-label" id="sk-shape-l">Story shape</span><div role="group" aria-labelledby="sk-shape-l"><anvil-component type="RepeatingPanel" name="shapes_panel" prop:item_template="OScreenplay.Items.ShapeChip" prop:role='["sk-shapes"]'></anvil-component></div></div>
+            <label class="ui-field"><span>Develop as</span><anvil-component type="DropDown" name="format_box"></anvil-component></label>
+          </div>
+          <div class="ui-card"><h2 class="sk-h">Every slot</h2><p class="os-help">Roll one slot at a time, or lock it.</p><anvil-component type="RepeatingPanel" name="slots_panel" prop:item_template="OScreenplay.Items.SlotRow" prop:role='["sk-slots"]'></anvil-component></div>
+        </aside>
+      </div>
+      <section class="dk-sec" anvil:name="history_sec"><h2 class="sk-h">Earlier pulls</h2><anvil-component type="RepeatingPanel" name="history_panel" prop:item_template="OScreenplay.Items.HistoryChip" prop:role='["sk-history"]'></anvil-component></section>
+      <section class="dk-sec">
+        <div class="dk-sec-head"><div><h2>Your vault</h2><p class="muted small">Sparks you saved. Reopen one to keep swapping, or develop it into a project.</p></div><anvil-component type="Label" name="vault_count" prop:role='["fine-print"]'></anvil-component></div>
+        <anvil-component type="RepeatingPanel" name="vault_panel" prop:item_template="OScreenplay.Items.VaultRow" prop:role='["sk-vault"]'></anvil-component>
+        <div class="ui-empty" anvil:name="vault_empty"><i class="ic ic-heart"></i><h3>Nothing saved yet</h3><p>Hit Save on a spark you like. It waits here until you're ready.</p></div>
+      </section>
+    </div>
+  </anvil-block>
+</anvil-form>

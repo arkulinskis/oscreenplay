@@ -1,0 +1,27 @@
+---
+custom_component: true
+properties:
+  - name: night
+    type: boolean
+    default_value: true
+    description: Drawn for the always-dark panels
+  - name: labels
+    type: boolean
+    default_value: true
+    description: Show the step names around the wheel
+  - name: active
+    type: string
+    default_value: ""
+    description: The Story Circle step to highlight (you, need, go, search, find, take, return, change)
+events:
+  - name: beat_click
+    description: A step of the wheel was clicked
+    parameters:
+      - name: beat
+toolbox_item:
+  title: Story Circle wheel
+  group: OScreenplay
+help_text: |
+  Dan Harmon's Story Circle as an SVG wheel, drawn by the engine (OS.svg.wheel). Click a step to get beat_click.
+---
+<div class="os-wheel-host"><div anvil:dom-node="host" anvil:on-dom:click="self.host_click"></div></div>
