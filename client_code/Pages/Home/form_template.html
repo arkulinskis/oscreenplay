@@ -1,0 +1,63 @@
+<anvil-form layout="OScreenplay.Layouts.Shell">
+  <anvil-block slot="content">
+
+    <div class="ui-wrap">
+      <div class="os-head">
+        <div>
+          <h1><span anvil:dom-node="greet"></span>, <em anvil:dom-node="first"></em></h1>
+          <p class="muted" anvil:dom-node="sub"></p>
+        </div>
+        <div class="ui-row">
+          <a class="ui-btn" href="#spark"><i class="ic ic-sparkle"></i>Pull a spark</a>
+          <anvil-component type="Button" name="new_button" prop:text="New screenplay" prop:role='["btn", "btn-primary", "ic-plus"]'></anvil-component>
+        </div>
+      </div>
+      <div class="dk-top">
+        <div class="os-night dk-prompt">
+          <div><p class="os-label">Tonight's prompt · a five-minute warm-up</p><anvil-component type="Label" name="prompt" prop:role='["dk-quote"]'></anvil-component></div>
+          <div class="ui-row"><anvil-component type="Button" name="another_button" prop:text="Another" prop:role='["btn", "btn-night", "btn-sm", "ic-refresh"]'></anvil-component><a class="ui-btn night sm" href="#learn/scenes"><i class="ic ic-book"></i>How to write a scene</a></div>
+        </div>
+        <div class="ui-card dk-continue" anvil:name="continue_card">
+          <anvil-component type="RepeatingPanel" name="last_panel" prop:item_template="OScreenplay.Items.Poster"></anvil-component>
+          <div>
+            <h2 class="dk-h3" anvil:dom-node="last_title"></h2>
+            <p class="os-meta" anvil:dom-node="last_when"></p>
+            <div class="os-meter" title="Readiness"><i anvil:dom-node="last_meter"></i></div>
+            <div class="dk-next"><i class="ic ic-doctor"></i><span anvil:dom-node="last_next"></span></div>
+            <a class="ui-btn primary sm" anvil:name="last_open" href="#home">Open <i class="ic ic-arrow"></i></a>
+          </div>
+        </div>
+        <div class="ui-card dk-continue dk-start" anvil:name="start_card">
+          <div>
+            <h2 class="dk-h3">Three ways in</h2>
+            <ul class="lp-list">
+              <li><i class="ic ic-sparkle"></i><span><b>Spark</b>: generate a story and develop it into a project in one click.</span></li>
+              <li><i class="ic ic-layers"></i><span><b>Structure</b>: start with a card for every beat of a classic structure.</span></li>
+              <li><i class="ic ic-film"></i><span><b>Study</b>: open a sample below and see how a finished project fits together.</span></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <section>
+        <div class="dk-sec-head"><h2>Your screenplays</h2></div>
+        <anvil-component type="RepeatingPanel" name="posters_panel" prop:item_template="OScreenplay.Items.Poster" prop:role='["os-posters"]'></anvil-component>
+      </section>
+      <section class="dk-sec" anvil:name="samples_sec">
+        <div class="dk-sec-head"><div><h2>Study the samples</h2><p class="muted small">Finished projects to pull apart. Open one read-only, or make it yours with one click.</p></div></div>
+        <anvil-component type="RepeatingPanel" name="samples_panel" prop:item_template="OScreenplay.Items.Poster" prop:role='["dk-strip"]'></anvil-component>
+      </section>
+      <section class="dk-sec">
+        <div class="dk-sec-head"><h2>Latest sparks</h2><a href="#spark">Open the vault <i class="ic ic-arrow"></i></a></div>
+        <anvil-component type="RepeatingPanel" name="sparks_panel" prop:item_template="OScreenplay.Items.SparkCard" prop:role='["dk-sparks"]'></anvil-component>
+        <div class="ui-empty" anvil:name="no_sparks"><i class="ic ic-sparkle"></i><h3>No saved sparks</h3><p>Save the ones you like on the Spark page; they wait here.</p></div>
+      </section>
+      <section class="dk-sec">
+        <ul class="dk-links">
+          <li><a href="#ideas"><i class="ic ic-bulb"></i><b>Idea library</b><span anvil:dom-node="ideas_line">Archetypes, wounds, twists, scene recipes</span></a></li>
+          <li><a href="#learn"><i class="ic ic-book"></i><b>Learn</b><span>Format, structure, and a Godfather masterclass</span></a></li>
+          <li><a href="#learn/circle"><i class="ic ic-wheel"></i><b>The Story Circle</b><span>The 8-step engine, explained</span></a></li>
+        </ul>
+      </section>
+    </div>
+  </anvil-block>
+</anvil-form>

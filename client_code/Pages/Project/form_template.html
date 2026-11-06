@@ -1,0 +1,27 @@
+<anvil-form layout="OScreenplay.Layouts.Shell">
+  <anvil-block slot="content">
+
+    <div class="ui-wrap pj-wrap">
+      <div anvil:name="loading"><div class="ui-skel" style="height:70px"></div><div class="ui-skel" style="height:420px;margin-top:16px"></div></div>
+      <div class="ui-empty" anvil:name="missing"><i class="ic ic-film"></i><h2>We couldn't open this screenplay</h2><anvil-component type="Label" name="missing_text" prop:role='["muted"]'></anvil-component><p><a class="ui-btn primary" href="#home">Back to your desk</a></p></div>
+      <div anvil:name="shell">
+        <div class="pj-bar">
+          <span class="pj-dot" anvil:name="dot"></span>
+          <div class="pj-title"><span class="os-tc" anvil:dom-node="kind"></span><anvil-component type="TextBox" name="title_box" prop:role='["pj-title-box"]'></anvil-component></div>
+          <span class="pj-save" anvil:name="save_status" role="status"><i></i><span anvil:dom-node="save_text">Saved</span></span>
+          <a class="pj-score" href="#project" anvil:name="score_link" anvil:on-dom:click="self.score_click" title="Readiness, from the script doctor"><span class="os-ring" anvil:dom-node="ring"><b anvil:dom-node="ring_num">0</b></span><span class="muted">ready</span></a>
+        </div>
+        <div class="pj-ro" anvil:name="ro_bar"><span><i class="ic ic-lock"></i> <b>You're studying a sample.</b> Change anything to see how the tools react; nothing is saved until you make your own copy.</span><anvil-component type="Button" name="copy_button" prop:text="Make it mine" prop:role='["btn", "btn-primary", "btn-sm", "ic-copy"]'></anvil-component></div>
+        <nav class="ui-tabs pj-tabs" aria-label="Project">
+          <a href="#project" data-tab="overview" anvil:name="t_overview" anvil:on-dom:click="self.tab_click"><i class="ic ic-grid"></i>Overview</a>
+          <a href="#project" data-tab="cast" anvil:name="t_cast" anvil:on-dom:click="self.tab_click"><i class="ic ic-users"></i>Cast <anvil-component type="Label" name="c_cast" prop:role='["count"]'></anvil-component></a>
+          <a href="#project" data-tab="web" anvil:name="t_web" anvil:on-dom:click="self.tab_click"><i class="ic ic-web"></i>Web <anvil-component type="Label" name="c_web" prop:role='["count"]'></anvil-component></a>
+          <a href="#project" data-tab="chronology" anvil:name="t_chronology" anvil:on-dom:click="self.tab_click"><i class="ic ic-timeline"></i>Chronology <anvil-component type="Label" name="c_chronology" prop:role='["count"]'></anvil-component></a>
+          <a href="#project" data-tab="storyline" anvil:name="t_storyline" anvil:on-dom:click="self.tab_click"><i class="ic ic-film"></i>Storyline <anvil-component type="Label" name="c_storyline" prop:role='["count"]'></anvil-component></a>
+          <a href="#project" data-tab="pages" anvil:name="t_pages" anvil:on-dom:click="self.tab_click"><i class="ic ic-pages"></i>Pages <anvil-component type="Label" name="c_pages" prop:role='["count"]'></anvil-component></a>
+        </nav>
+        <anvil-component type="OScreenplay.Components.Workspace" name="workspace"></anvil-component>
+      </div>
+    </div>
+  </anvil-block>
+</anvil-form>

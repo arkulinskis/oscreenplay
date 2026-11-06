@@ -1,0 +1,31 @@
+---
+custom_component: true
+properties: []
+events:
+  - name: status
+    description: The autosave state changed (kind = "" saved, busy, dirty, err; text = what to show)
+    parameters:
+      - name: kind
+      - name: text
+  - name: bar
+    description: Numbers for the project bar changed (info = JSON text {score, counts, title})
+    parameters:
+      - name: info
+  - name: tab
+    description: The open tab changed (from a link inside a tab, or go())
+    parameters:
+      - name: name
+      - name: sub
+  - name: retitle
+    description: A tab changed the project's title
+    parameters:
+      - name: title
+toolbox_item:
+  title: Project workspace
+  group: OScreenplay
+help_text: |
+  The six project tabs (Overview, Cast, Web, Chronology, Storyline, Pages) from the engine (OS.workspace in os-ui.js,
+  OS.tabs in os-tabs.js), with autosave a second after each change. mount(project_js, me, tab, sub); go(tab, sub);
+  set_title(text); destroy() saves anything pending.
+---
+<div class="pj-work"><div anvil:dom-node="host"></div></div>

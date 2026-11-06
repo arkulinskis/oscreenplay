@@ -1,0 +1,135 @@
+<anvil-form layout="OScreenplay.Layouts.Shell">
+  <anvil-block slot="content">
+
+    <div class="page-landing">
+      <section class="lp-hero">
+        <div class="ui-wrap">
+          <div>
+            <h1>Write the screenplay <em>you keep putting off.</em></h1>
+            <p class="lp-lead">OScreenplay turns a half-idea into a real script. Pull a story spark and swap any word you don't like, build characters who react like people, line up what happened against what we see, and write properly formatted pages, with a script doctor watching your back.</p>
+            <div class="lp-cta" anvil:name="guest_cta">
+              <a class="ui-btn primary lg" href="#auth/signup">Start writing, it's free <i class="ic ic-arrow"></i></a>
+              <a class="ui-btn lg" href="#auth">I have an account</a>
+            </div>
+            <div class="lp-cta" anvil:name="member_cta">
+              <a class="ui-btn primary lg" href="#home">Open your desk <i class="ic ic-arrow"></i></a>
+            </div>
+            <ul class="lp-proof">
+              <li><i class="ic ic-check"></i>No AI writing for you</li>
+              <li><i class="ic ic-check"></i>Industry-standard format</li>
+              <li><i class="ic ic-check"></i>Works on your phone</li>
+            </ul>
+          </div>
+          <div class="lp-reel">
+            <div class="os-night">
+              <div class="os-sprocket" aria-hidden="true"></div>
+              <div class="segs" aria-hidden="true"><i class="on"></i><i class="on"></i><i class="now"></i><i></i><i></i></div>
+              <anvil-component type="OScreenplay.Components.SparkMachine" name="reel"></anvil-component>
+              <div class="lp-reel-act">
+                <anvil-component type="Button" name="pull_button" prop:text="Pull another" prop:role='["btn", "btn-primary", "ic-dice"]'></anvil-component>
+                <anvil-component type="Button" name="develop_button" prop:text="Develop this one" prop:role='["btn", "btn-night", "ic-arrow"]'></anvil-component>
+              </div>
+              <p class="hint">Tap any highlighted word to swap it. Lock the ones you love.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="lp-section ytf" id="watch">
+        <div class="ui-wrap">
+          <div class="ytf-in">
+            <div class="ytf-copy">
+              <h2><svg viewBox="0 0 28 20" width="26" height="19" aria-hidden="true"><rect width="28" height="20" rx="5" fill="#FF0033"/><path d="M11.2 5.8v8.4l7.3-4.2z" fill="#fff"/></svg>See OScreenplay in about a minute</h2>
+              <p>A short video tour of what OScreenplay does and how it works.</p>
+              <a class="ytf-link" href="https://www.youtube.com/watch?v=niJntt5oVNU" target="_blank" rel="noopener">Watch on YouTube &#8599;</a>
+            </div>
+            <div>
+              <div class="ytf-frame">
+                <button type="button" class="ytf-cover" data-yt-film="niJntt5oVNU" data-yt-title="OScreenplay video" aria-label="Play the OScreenplay video (1:10)"><img src="_/theme/yt-cover.jpg" alt="" loading="lazy" decoding="async" width="960" height="540"><span class="ytf-play" aria-hidden="true"><svg viewBox="0 0 68 48" width="68" height="48"><path d="M66.5 7.7a8.5 8.5 0 0 0-6-6C55.3.3 34 .3 34 .3s-21.3 0-26.5 1.4a8.5 8.5 0 0 0-6 6C.1 13 .1 24 .1 24s0 11 1.4 16.3a8.5 8.5 0 0 0 6 6c5.2 1.4 26.5 1.4 26.5 1.4s21.3 0 26.5-1.4a8.5 8.5 0 0 0 6-6C67.9 35 67.9 24 67.9 24s0-11-1.4-16.3z" fill="#FF0033"/><path d="M45 24 27 14v20z" fill="#fff"/></svg></span><span class="ytf-len">1:10</span></button>
+              </div>
+              <p class="ytf-note">The video loads from YouTube when you press play.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="lp-section" id="how">
+        <div class="ui-wrap">
+          <div class="lp-head"><h2>From "what if" to FADE OUT</h2><p>Five rooms, one project. Go in order or jump around; everything stays connected.</p></div>
+          <ol class="lp-steps">
+            <li><h3>Spark</h3><p>Generate a story abstract. Click any word to swap it, lock the ones you love, and develop it into a project in one click.</p></li>
+            <li><h3>Cast</h3><p>Want, need, wound, lie, flaw, fear, and Big Five personality. Ask how each character would react to a betrayal, a windfall, a declaration of love.</p></li>
+            <li><h3>Web</h3><p>A living relationship map: rivals, debts, secrets, love. Tension shows as weight; lonely characters get flagged.</p></li>
+            <li><h3>Two timelines</h3><p>The chronology (what happened, backstory included) against the storyline (the order we tell it). The braid shows every flashback.</p></li>
+            <li><h3>Pages</h3><p>A real screenplay editor: Enter and Tab do the formatting. Draft pages from your scene cards, export to Fountain, print to PDF.</p></li>
+          </ol>
+        </div>
+      </section>
+
+      <section class="lp-section">
+        <div class="ui-wrap">
+          <div class="lp-split">
+            <div class="os-night"><div class="lp-wheel"><anvil-component type="OScreenplay.Components.Wheel" name="wheel"></anvil-component></div></div>
+            <div>
+              <h2>The Story Circle, built in</h2>
+              <p class="lp-quote">&#8220;A character in a zone of comfort, wants something, enters an unfamiliar situation, adapts to it, gets what they wanted, pays a heavy price for it, returns to their familiar situation, having changed.&#8221;</p>
+              <p class="muted small">Dan Harmon's Story Circle, the engine behind every Rick and Morty episode</p>
+              <ul class="lp-list">
+                <li><i class="ic ic-check"></i><span>Every project shows its cards on the wheel, so empty steps are obvious.</span></li>
+                <li><i class="ic ic-check"></i><span>Prefer three acts or Save the Cat? Switch structures and your scenes move to the nearest beat.</span></li>
+                <li><i class="ic ic-check"></i><span>Each beat comes with the question it has to answer, and ideas when you're stuck.</span></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="lp-section">
+        <div class="ui-wrap">
+          <div class="lp-head">
+            <h2>It does the heavy lifting</h2>
+            <div class="lp-numbers">
+              <div><anvil-component type="Label" name="n_ideas" prop:role='["lp-num"]'></anvil-component><span>ideas in the library</span></div>
+              <div><anvil-component type="Label" name="n_react" prop:role='["lp-num"]'></anvil-component><span>reaction rules</span></div>
+              <div><anvil-component type="Label" name="n_struct" prop:role='["lp-num"]'></anvil-component><span>story structures</span></div>
+              <div><anvil-component type="Label" name="n_rel" prop:role='["lp-num"]'></anvil-component><span>kinds of relationship</span></div>
+            </div>
+          </div>
+          <div class="lp-feats">
+            <div class="lp-feature"><i class="ic ic-sparkle"></i><h3>Spark generator</h3><p>Six story shapes, a dozen swappable slots, a weirdness dial. Every abstract becomes a logline, a Story Circle and a starter cast.</p></div>
+            <div class="lp-feature"><i class="ic ic-mask"></i><h3>Characters that react</h3><p>A rule engine reads personality, flaw, fear and values to suggest what a character would logically do, and why.</p></div>
+            <div class="lp-feature"><i class="ic ic-web"></i><h3>Relationship web</h3><p>Drag characters around, connect them with 14 kinds of relationship, see tension at a glance.</p></div>
+            <div class="lp-feature"><i class="ic ic-timeline"></i><h3>Chronology vs. storyline</h3><p>Rebuild events in order, then tell them out of order on purpose. Flashbacks light up in red.</p></div>
+            <div class="lp-feature"><i class="ic ic-wheel"></i><h3>Six structures</h3><p>Story Circle, three acts, Save the Cat, the Hero's Journey, eight sequences, Kish&#333;tenketsu. Switch any time; cards follow.</p></div>
+            <div class="lp-feature"><i class="ic ic-doctor"></i><h3>Script doctor</h3><p>Scenes that don't turn, setups that never pay off, villains without a want. A readiness score and a fix for each note.</p></div>
+            <div class="lp-feature"><i class="ic ic-pages"></i><h3>Proper pages</h3><p>Scene headings, action, character, parenthetical, dialogue, transitions. Fountain import and export, page count, runtime.</p></div>
+            <div class="lp-feature"><i class="ic ic-book"></i><h3>A masterclass inside</h3><p>Screenplay format, structure theory, and what The Godfather teaches about scenes, subtext and arcs.</p></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="lp-section">
+        <div class="ui-wrap">
+          <div class="lp-head c"><h2>Questions</h2></div>
+          <div class="lp-faq">
+            <details><summary>Does it use AI to write?</summary><p>No. Every suggestion comes from rules, story templates and a hand-built library of ideas: archetypes, wounds, flaws, conditions, twists, scene recipes. You do the writing; OScreenplay does the bookkeeping, the formatting and the nagging.</p></details>
+            <details><summary>Is it free?</summary><p>Yes. Create as many screenplays and sparks as you like.</p></details>
+            <details><summary>Who can read my scripts?</summary><p>Only you. Projects are private to your account. The sample scripts are the only ones everybody can open (read-only).</p></details>
+            <details><summary>Can I take my script elsewhere?</summary><p>Yes. Export to Fountain (opens in Final Draft, Highland, WriterDuet, Fade In and others) or print a properly formatted PDF. You can import Fountain too.</p></details>
+            <details><summary>I've never written a screenplay. Is that a problem?</summary><p>That's who the Learn page is for: format in ten minutes, the main structures, character craft, and a scene-by-scene masterclass. Every field in a project explains itself.</p></details>
+            <details><summary>Does it work on my phone?</summary><p>Yes, from spark to pages. A laptop is nicer for long writing sessions.</p></details>
+          </div>
+        </div>
+      </section>
+
+      <section class="lp-section">
+        <div class="ui-wrap">
+          <div class="os-night lp-band">
+            <div><h2>Your first scene is three clicks away.</h2><p>Pull a spark, develop it, open the pages. The blank page never stood a chance.</p></div>
+            <a class="ui-btn primary lg" anvil:name="band_link" href="#auth/signup"><span anvil:dom-node="band_text">Start writing, it's free</span></a>
+          </div>
+        </div>
+      </section>
+    </div>
+  </anvil-block>
+</anvil-form>

@@ -41,8 +41,8 @@ def load():
         users[email] = u
     for i, (email, sample) in enumerate(Samples.SAMPLES):
         stamp = C.now() - dt.timedelta(days=30 - i)
-        app_tables.projects.add_row(owner=users[email], title=sample["title"], logline=sample["logline"], genre=sample["genre"],
-                                    format=sample["format"], structure=sample["structure"], color=sample["color"],
+        app_tables.projects.add_row(owner=users[email], title=str(sample["title"]), logline=str(sample["logline"]), genre=str(sample["genre"]),
+                                    format=str(sample["format"]), structure=str(sample["structure"]), color=str(sample["color"]),
                                     doc=copy.deepcopy(sample["doc"]), stats=_stats(sample), created=stamp, updated=stamp, is_demo=True)
     C.set_setting("demo", "loaded")
     return counts()
