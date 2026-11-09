@@ -263,10 +263,9 @@ db_schema:
     server: full
     title: Users
 metadata:
-  description: 'Write the screenplay you keep putting off: story sparks you can remix, characters that react like people,
-    two timelines, structure guides and a proper script editor.'
-  logo_img: asset:icon-512.png
-  title: 'OScreenplay: write a better screenplay, from idea to pages'
+  description: "Write the screenplay you keep putting off: story sparks you can remix, characters that react like people, two timelines, structure guides and a proper script editor."
+  logo_img: "asset:icon-512.png"
+  title: "OScreenplay: write a better screenplay, from idea to pages"
 name: OScreenplay
 native_deps:
   head_html: |
@@ -290,7 +289,7 @@ native_deps:
     <meta name="twitter:description" content="Write the screenplay you keep putting off: story sparks you can remix, characters that react like people, two timelines, structure guides and a proper script editor.">
     <meta name="twitter:image" content="https://oscreenplay.com/_/theme/og-image.png">
     <link rel="alternate" type="text/plain" title="OScreenplay for AI assistants" href="https://oscreenplay.com/llms.txt">
-    <script type="application/ld+json">{"@context": "https://schema.org", "@graph": [{"@type": "WebApplication", "@id": "https://oscreenplay.com/#app", "name": "OScreenplay", "url": "https://oscreenplay.com/", "description": "Write the screenplay you keep putting off: story sparks you can remix, characters that react like people, two timelines, structure guides and a proper script editor.", "image": "https://oscreenplay.com/_/theme/og-image.png", "inLanguage": "en", "publisher": {"@id": "https://arkvital.com/#org"}, "keywords": "screenwriting software, screenplay editor online, story idea generator, logline generator, story circle, character builder, screenplay structure, scene cards, write a movie script", "applicationCategory": "DesignApplication", "operatingSystem": "Any (web browser)", "browserRequirements": "Requires JavaScript and a modern web browser", "featureList": ["Spark: a story slot machine with 12 swappable slots and six story shapes", "About 780 ideas in 22 decks: archetypes, wounds, flaws, twists and more", "Characters whose personality predicts their reactions, and a relationship map", "Two timelines: chronology against storyline", "Scene cards on classic structures like the Story Circle", "A screenplay editor with a rule-based script doctor"], "audience": {"@type": "Audience", "audienceType": "Screenwriters and storytellers working alone on a script"}}, {"@type": "WebSite", "@id": "https://oscreenplay.com/#site", "url": "https://oscreenplay.com/", "name": "OScreenplay", "publisher": {"@id": "https://arkvital.com/#org"}}, {"@type": "Organization", "@id": "https://arkvital.com/#org", "name": "Arkvital", "url": "https://arkvital.com", "email": "arkvital@outlook.com", "address": {"@type": "PostalAddress", "addressLocality": "Montreal", "addressRegion": "QC", "addressCountry": "CA"}}]}</script>
+    <script type="application/ld+json">{"@context": "https://schema.org", "@graph": [{"@type": "Service", "@id": "https://oscreenplay.com/#app", "name": "OScreenplay", "url": "https://oscreenplay.com/", "description": "Write the screenplay you keep putting off: story sparks you can remix, characters that react like people, two timelines, structure guides and a proper script editor.", "image": "https://oscreenplay.com/_/theme/og-image.png", "serviceType": "From a half-idea to properly formatted screenplay pages", "provider": {"@id": "https://arkvital.com/#org"}, "areaServed": "Worldwide", "availableChannel": {"@type": "ServiceChannel", "serviceUrl": "https://oscreenplay.com/", "name": "Web browser"}, "availableLanguage": "en", "audience": {"@type": "Audience", "audienceType": "Screenwriters and storytellers working alone on a script"}}, {"@type": "WebSite", "@id": "https://oscreenplay.com/#site", "url": "https://oscreenplay.com/", "name": "OScreenplay", "publisher": {"@id": "https://arkvital.com/#org"}}, {"@type": "Organization", "@id": "https://arkvital.com/#org", "name": "Arkvital", "url": "https://arkvital.com", "email": "arkvital@outlook.com", "address": {"@type": "PostalAddress", "addressLocality": "Montreal", "addressRegion": "QC", "addressCountry": "CA"}}]}</script>
     <!-- seo:end -->
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="theme-color" content="#0e0d0c">
