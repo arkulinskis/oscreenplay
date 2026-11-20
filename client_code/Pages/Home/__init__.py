@@ -12,6 +12,19 @@ def greeting():
     return "Writing late" if h < 5 else "Good morning" if h < 12 else "Good afternoon" if h < 18 else "Good evening"
 
 
+GOAL_WORDS = {100: "half a page", 200: "1 page", 400: "2 pages", 600: "3 pages"}  # about 200 typed words a page
+
+
+def num(n):
+    """12345 -> "12,345" (no format mini-language needed in the browser's Python)."""
+    s = str(int(n or 0))
+    out = ""
+    while len(s) > 3:
+        out = "," + s[-3:] + out
+        s = s[:-3]
+    return s + out
+
+
 def next_step(st):
     st = st or {}
     if not st.get("characters"):
@@ -42,7 +55,7 @@ class Home(HomeTemplate):
         self._load()
 
     def _load(self, **event_args):
-        d = state.call("get_desk")
+        d = state.call("get_desk", window.UI.localDay())
         if d is None:
             return
         projects = d["projects"]
@@ -58,11 +71,70 @@ class Home(HomeTemplate):
             self.dom_nodes["last_meter"].style.width = "%d%%" % ((last.get("stats") or {}).get("readiness") or 5)
             self.dom_nodes["last_next"].textContent = next_step(last.get("stats"))
             state.set_attr(self.last_open, "href", router.href("project", last["id"]))
+        self.last_id = last["id"] if last else ""
+        self._draw_habit(d.get("habit"))
         self.posters_panel.items = [{"new": True}] + projects
         self.samples_sec.visible = bool(d["samples"])
         self.samples_panel.items = d["samples"]
         self.sparks_panel.items = d["sparks"][:6]
         self.no_sparks.visible = not d["sparks"]
+
+    # ---- "Your writing week": the 28-frame film strip, streak, words, goal chips (server_code/Habits.py)
+    def _draw_habit(self, h):
+        self.habit_card.visible = bool(h)
+        if not h:
+            return  # the habits table isn't there yet (Schema Mismatch not accepted): no card
+        goal = h["goal"]
+        for g in (100, 200, 400, 600):
+            b = getattr(self, "goal_%d" % g)
+            on = g == goal
+            b.role = ["btn", "btn-chip", "btn-on"] if on else ["btn", "btn-chip"]
+            state.set_control_attr(b, "aria-pressed", "true" if on else "false")
+            state.set_control_attr(b, "title", "%d typed words a day" % g)
+        streak, today = h["streak"], h["today"]
+        self.dom_nodes["hb_streak"].textContent = str(streak)
+        self.dom_nodes["hb_streak_l"].textContent = "day streak" if streak else "day streak: start one today"
+        self.dom_nodes["hb_streak_box"].className = "hb-stat" + (" hot" if streak >= 2 else "")
+        self.dom_nodes["hb_week"].textContent = num(h["week"])
+        self.dom_nodes["hb_today"].textContent = num(today)
+        self.dom_nodes["hb_today_l"].textContent = ("word" if today == 1 else "words") + " today, goal " + num(goal)
+        left = goal - today
+        if not h.get("any"):
+            sub = "Type in Pages and your words land here after each autosave. Hit the goal and today's frame lights up."
+        elif left <= 0:
+            sub = "Goal met today: the frame is lit." + (" %d days in a row." % streak if streak >= 2 else "")
+        else:
+            sub = "%s words to go for today's %s." % (num(left), GOAL_WORDS.get(goal, "goal"))
+        self.dom_nodes["hb_sub"].textContent = sub
+        self.dom_nodes["hb_tip"].textContent = (
+            "Keep the chain going: %s tomorrow makes it %d days." % (GOAL_WORDS.get(goal, "your goal"), streak + 1) if streak >= 1
+            else "Small, fixed targets finish scripts: a page a day is a feature draft in about four months.")
+        self.frames_panel.items = h["frames"]
+        self.sprint_link.visible = bool(getattr(self, "last_id", ""))
+        if getattr(self, "last_id", ""):
+            state.set_attr(self.sprint_link, "href", router.href("project", self.last_id, "pages"))
+
+    def _goal(self, words):
+        r = state.call("set_goal", words, window.UI.localDay())
+        if r is not None:
+            self._draw_habit(r["habit"])
+            state.toast("Daily goal: %s (%d typed words)." % (GOAL_WORDS[words], words), "ok")
+
+    @handle("goal_100", "click")
+    def goal_100_click(self, **event_args):
+        self._goal(100)
+
+    @handle("goal_200", "click")
+    def goal_200_click(self, **event_args):
+        self._goal(200)
+
+    @handle("goal_400", "click")
+    def goal_400_click(self, **event_args):
+        self._goal(400)
+
+    @handle("goal_600", "click")
+    def goal_600_click(self, **event_args):
+        self._goal(600)
 
     @handle("another_button", "click")
     def another_button_click(self, **event_args):

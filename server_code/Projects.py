@@ -15,6 +15,7 @@ import anvil.tables as tables
 
 from . import common as C
 from . import DemoData
+from . import Habits
 
 FORMATS = {"feature", "short", "pilot30", "pilot60", "vertical"}
 STRUCTURES = {"circle", "three", "cat", "hero", "seq", "kisho"}
@@ -83,8 +84,9 @@ def _new_fields(seed):
 
 
 @anvil.server.callable(require_user=True)
-def get_desk():
-    """The Desk page in one call: my projects, the samples, my latest sparks."""
+def get_desk(today=None):
+    """The Desk page in one call: my projects, the samples, my latest sparks, my writing week (today = the writer's
+    local YYYY-MM-DD; habit is None until the habits table exists, which hides the card)."""
     DemoData.ensure_loaded()
     me = C.require_user()
     mine = app_tables.projects.search(tables.order_by("updated", ascending=False), owner=me)
@@ -92,7 +94,8 @@ def get_desk():
     sparks = app_tables.sparks.search(tables.order_by("created", ascending=False), owner=me)
     from . import Sparks
     return {"projects": [_summary(r, me) for r in mine], "samples": [_summary(r, me) for r in samples],
-            "sparks": [Sparks.spark_dict(s) for s in sparks[:8]], "spark_total": len(sparks)}
+            "sparks": [Sparks.spark_dict(s) for s in sparks[:8]], "spark_total": len(sparks),
+            "habit": Habits.summary(me, today)}
 
 
 @anvil.server.callable(require_user=True)
@@ -121,7 +124,8 @@ def create_project(seed=None):
 
 @anvil.server.callable(require_user=True)
 def save_project(project_id, patch):
-    """Autosave. patch may hold title, logline, genre, format, structure, color, doc, stats."""
+    """Autosave. patch may hold title, logline, genre, format, structure, color, doc, stats, and for the writing habit
+    typed (words typed in Pages since the last save), sprint (sprints finished) and day (the writer's local date)."""
     me = C.require_user()
     r = C.row_by_id(app_tables.projects, project_id)
     if r is None or r["owner"] != me:
@@ -152,6 +156,11 @@ def save_project(project_id, patch):
         changes["stats"] = _clean_stats(patch["stats"])
     changes["updated"] = C.now()
     r.update(**changes)
+    if patch.get("typed") or patch.get("sprint"):
+        try:   # never let the habit log break a save
+            Habits.log_typing(me, patch.get("day"), patch.get("typed"), patch.get("sprint"))
+        except Exception:
+            pass
     return C.ok(updated=C.iso(r["updated"]))
 
 

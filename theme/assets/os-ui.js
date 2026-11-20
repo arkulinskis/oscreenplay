@@ -50,14 +50,23 @@
     promise.then(done, done);
     return promise;
   };
-  UI.toast = function (msg, kind) {
+  /* action = {label, run}: a button in the toast (e.g. Undo); the toast then stays 9 seconds. */
+  UI.toast = function (msg, kind, action) {
     var box = document.querySelector('.ui-toasts');
     if (!box) { box = document.createElement('div'); box.className = 'ui ui-toasts'; box.setAttribute('aria-live', 'polite'); document.body.appendChild(box); }
     var t = document.createElement('div');
-    t.className = 'ui-toast' + (kind ? ' ' + kind : '');
-    t.innerHTML = (kind === 'error' ? UI.icon('info') : kind === 'ok' ? UI.icon('check') : '') + '<span>' + esc(msg) + '</span>';
+    t.className = 'ui-toast' + (kind ? ' ' + kind : '') + (action ? ' has-act' : '');
+    t.innerHTML = (kind === 'error' ? UI.icon('info') : kind === 'ok' ? UI.icon('check') : '') + '<span>' + esc(msg) + '</span>' +
+      (action ? '<button type="button" class="ui-toast-act">' + esc(action.label) + '</button>' : '');
     box.appendChild(t);
-    setTimeout(function () { t.classList.add('out'); setTimeout(function () { t.remove(); }, 260); }, kind === 'error' ? 6500 : 3200);
+    function out() { if (!t.parentNode) return; t.classList.add('out'); setTimeout(function () { t.remove(); }, 260); }
+    if (action) t.querySelector('.ui-toast-act').addEventListener('click', function () { out(); try { action.run(); } catch (e) { console.error(e); } });
+    setTimeout(out, action ? 9000 : kind === 'error' ? 6500 : 3200);
+  };
+  /* Today in the writer's own time zone, as YYYY-MM-DD (the writing-habit days). */
+  UI.localDay = function (d) {
+    d = d || new Date();
+    return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2);
   };
   /* The project tabs' own dialogs (scene, event, relationship, import...): part of the editor engine. */
   UI.modal = function (html, opts) {
@@ -328,7 +337,11 @@
       status('busy', 'Saving…');
       P.stats = OS.stats(P);
       var patch = { title: P.title, logline: P.logline, genre: P.genre, format: P.format, structure: P.structure, color: P.color, doc: P.doc, stats: P.stats };
+      /* the writing habit: words typed in Pages since the last save, and finished sprints (Habits.py on the server) */
+      var sentTyped = Math.max(0, Math.round(T.typed || 0)), sentSprints = T.sprints || 0;
+      if (sentTyped || sentSprints) { patch.typed = sentTyped; patch.sprint = sentSprints; patch.day = UI.localDay(); }
       inflight = UI.apiQuiet('save_project', P.id, patch).then(function () {
+        T.typed = Math.max(0, (T.typed || 0) - sentTyped); T.sprints = Math.max(0, (T.sprints || 0) - sentSprints);
         inflight = null;
         status('', 'Saved');
         if (again || dirty) { again = false; dirty = true; return flush(); }
@@ -382,7 +395,65 @@
       var bar = document.querySelector('.pj-tabs');
       if (bar && window.scrollY > bar.offsetTop) window.scrollTo(0, Math.max(0, bar.offsetTop - 70));
     });
+    /* ---- writing sprints: 10/20/30 minutes against the clock. The state lives here, so a sprint keeps running while the
+       writer checks another tab; the Pages toolbar shows the countdown chip ([data-sprint-left], [data-sprint-words]). */
+    var sprint = null, sprintTimer = null, audio = null;
+    function sprintWords() { return sprint ? Math.max(0, T.typedTotal - sprint.from) : 0; }
+    function fmtLeft(ms) { var s = Math.max(0, Math.ceil(ms / 1000)); return Math.floor(s / 60) + ':' + ('0' + s % 60).slice(-2); }
+    function pagesWord(w) {   // about 200 typed words make a screenplay page
+      var p = Math.round(w / 200 * 2) / 2;
+      if (p < 0.5) return w ? 'less than half a page' : 'no pages yet';
+      if (p === 0.5) return 'about half a page';
+      if (p === 1) return 'about a page';
+      return 'about ' + (p % 1 ? Math.floor(p) + '½' : p) + ' pages';
+    }
+    function clap() {   // a soft clapperboard "clack": two short noise bursts (Web Audio, made on the Start click)
+      try {
+        if (!audio) return;
+        [0, 0.09].forEach(function (at) {
+          var n = Math.floor(audio.sampleRate * 0.05), buf = audio.createBuffer(1, n, audio.sampleRate), d = buf.getChannelData(0);
+          for (var i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / n, 4);
+          var src = audio.createBufferSource(), g = audio.createGain(), f = audio.createBiquadFilter();
+          f.type = 'bandpass'; f.frequency.value = 2400; g.gain.value = 0.35;
+          src.buffer = buf; src.connect(f); f.connect(g); g.connect(audio.destination); src.start(audio.currentTime + at);
+        });
+      } catch (e) {}
+    }
+    function sprintPaint() {
+      var left = el.querySelector('[data-sprint-left]'), words = el.querySelector('[data-sprint-words]');
+      if (left && sprint) left.textContent = fmtLeft(sprint.end - Date.now());
+      if (words && sprint) words.textContent = UI.plural(sprintWords(), 'word');
+    }
+    function sprintStop(finished) {
+      if (!sprint) return;
+      var s = sprint, w = sprintWords(), mins = Math.max(1, Math.round((Math.min(Date.now(), s.end) - s.start) / 60000));
+      sprint = null; clearInterval(sprintTimer); sprintTimer = null;
+      try { T.onSprint && T.onSprint(); } catch (e) { console.error(e); }
+      if (!finished) { UI.toast('Sprint stopped: ' + UI.plural(mins, 'minute') + ', ' + UI.plural(w, 'word') + '.'); return; }
+      T.sprints = (T.sprints || 0) + 1;
+      touch();
+      clap();
+      var m = UI.modal('<div class="sp-cut"><span class="sp-slate" aria-hidden="true">' + UI.icon('clapper') + '</span><h2>Cut.</h2>' +
+        '<p class="sp-sum">' + UI.plural(s.min, 'minute') + ', ' + UI.plural(w, 'word') + ': ' + pagesWord(w) + '.</p>' +
+        '<p class="muted">' + (w >= 150 ? 'That\'s a real chunk of script. It\'s on your desk\'s writing week.' : w ? 'Every line counts. It\'s on your desk\'s writing week.' : 'No words this time. Sometimes a sprint is thinking time; the next one is yours.') + '</p>' +
+        '<div class="ui-row end"><button class="ui-btn ghost" data-close>Done</button><button class="ui-btn primary" data-again>' + UI.icon('clock') + 'Another ' + s.min + ' minutes</button></div></div>');
+      m.el.querySelector('[data-again]').addEventListener('click', function () { m.close(); sprintStart(s.min); });
+    }
+    function sprintStart(min) {
+      if (P.readonly) return;
+      try { if (!audio && (window.AudioContext || window.webkitAudioContext)) audio = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {}
+      clearInterval(sprintTimer);
+      sprint = { min: min, start: Date.now(), end: Date.now() + min * 60000, from: T.typedTotal };
+      sprintTimer = setInterval(function () { if (!sprint) return; if (Date.now() >= sprint.end) sprintStop(true); else sprintPaint(); }, 1000);
+      try { T.onSprint && T.onSprint(); } catch (e) { console.error(e); }
+      sprintPaint();
+    }
     T = { P: P, doc: P.doc, me: me, readonly: !!P.readonly, touch: touch, go: go, flush: flush, sortScenes: sortScenes, refreshBar: refreshBar,
+      typed: 0, typedTotal: 0, sprints: 0,
+      /* the Pages tab reports words the writer typed (never drafted, imported or pasted text) */
+      addTyped: function (n) { if (P.readonly || !(n > 0)) return; n = Math.min(60, n); T.typed += n; T.typedTotal += n; sprintPaint(); },
+      sprint: { start: sprintStart, stop: function () { sprintStop(false); }, active: function () { return !!sprint; },
+        left: function () { return sprint ? fmtLeft(sprint.end - Date.now()) : ''; }, words: sprintWords },
       setStructure: function (k) { if (k === P.structure) return; OS.remapBeats(P.doc.scenes, P.structure, k); P.structure = k; sortScenes(); touch(); },
       retitle: function () { try { hooks.retitle(P.title || ''); } catch (e) { console.error(e); } refreshBar(); } };
     window.addEventListener('beforeunload', warn);
@@ -393,6 +464,8 @@
       setTitle: function (text) { P.title = text; touch(); },
       flush: flush,
       destroy: function () {
+        clearInterval(sprintTimer); sprint = null;
+        try { if (audio && audio.close) audio.close(); } catch (e) {}
         window.removeEventListener('beforeunload', warn);
         if (current && current.destroy) { try { current.destroy(); } catch (e) { console.error(e); } }
         current = null;

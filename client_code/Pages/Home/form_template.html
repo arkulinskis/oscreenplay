@@ -38,6 +38,36 @@
           </div>
         </div>
       </div>
+      <section class="ui-card hb-card" anvil:name="habit_card" aria-labelledby="hb-h">
+        <div>
+          <h2 id="hb-h">Your writing week</h2>
+          <p class="hb-sub" anvil:dom-node="hb_sub"></p>
+        </div>
+        <div class="hb-goal">
+          <span class="hb-goal-l" id="hb-goal-l">Daily goal</span>
+          <div class="hb-chips" role="group" aria-labelledby="hb-goal-l">
+            <anvil-component type="Button" name="goal_100" prop:text="½ page" prop:role='["btn", "btn-chip"]'></anvil-component>
+            <anvil-component type="Button" name="goal_200" prop:text="1 page" prop:role='["btn", "btn-chip"]'></anvil-component>
+            <anvil-component type="Button" name="goal_400" prop:text="2 pages" prop:role='["btn", "btn-chip"]'></anvil-component>
+            <anvil-component type="Button" name="goal_600" prop:text="3 pages" prop:role='["btn", "btn-chip"]'></anvil-component>
+          </div>
+        </div>
+        <div class="hb-stats">
+          <div class="hb-stat" anvil:dom-node="hb_streak_box"><b anvil:dom-node="hb_streak"></b><span anvil:dom-node="hb_streak_l"></span></div>
+          <div class="hb-stat"><b anvil:dom-node="hb_week"></b><span>words this week</span></div>
+          <div class="hb-stat"><b anvil:dom-node="hb_today"></b><span anvil:dom-node="hb_today_l"></span></div>
+        </div>
+        <div class="hb-film" role="group" aria-label="Your last 28 days of writing">
+          <div class="os-sprocket" aria-hidden="true"></div>
+          <anvil-component type="RepeatingPanel" name="frames_panel" prop:item_template="OScreenplay.Items.DayFrame" prop:role='["hb-strip"]'></anvil-component>
+          <div class="os-sprocket" aria-hidden="true"></div>
+        </div>
+        <div class="hb-legend" aria-hidden="true"><span><i></i>No writing</span><span><i class="some"></i>Some words</span><span><i class="met"></i>Goal met</span><span>Today has a red outline; a dot is a finished sprint.</span></div>
+        <div class="hb-foot">
+          <p anvil:dom-node="hb_tip"></p>
+          <a class="ui-btn primary sm" anvil:name="sprint_link" href="#home"><i class="ic ic-clock"></i>Start a sprint</a>
+        </div>
+      </section>
       <section>
         <div class="dk-sec-head"><h2>Your screenplays</h2></div>
         <anvil-component type="RepeatingPanel" name="posters_panel" prop:item_template="OScreenplay.Items.Poster" prop:role='["os-posters"]'></anvil-component>

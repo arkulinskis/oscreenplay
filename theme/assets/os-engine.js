@@ -137,7 +137,8 @@
 
   /* ======================================================================== project documents */
   OS.newDoc = function () {
-    return { premise: '', theme: '', theme_answer: '', tone: '', world: '', notes: '', logline_parts: {}, characters: [], relations: [], events: [], scenes: [], plants: [], script: [] };
+    return { premise: '', theme: '', theme_answer: '', tone: '', world: '', notes: '', logline_parts: {}, characters: [], relations: [], events: [], scenes: [], plants: [], script: [],
+      title_page: {}, table_read: {} };
   };
   OS.normalize = function (doc) {
     doc = doc && typeof doc === 'object' ? doc : {};
@@ -397,14 +398,44 @@
   SC.NAME = {}; SC.TYPES.forEach(function (t) { SC.NAME[t[0]] = t[1]; });
   SC.NEXT = { scene: 'action', action: 'action', character: 'dialogue', paren: 'dialogue', dialogue: 'action', transition: 'scene', shot: 'action', note: 'action' };
   SC.TAB = { action: 'character', character: 'transition', transition: 'scene', scene: 'action', dialogue: 'paren', paren: 'dialogue', shot: 'action', note: 'action' };
-  var WIDTH = { scene: 58, action: 61, character: 38, paren: 26, dialogue: 35, transition: 20, shot: 58, note: 0 };
+  /* Page geometry in characters (Courier 12 pt = 10 characters an inch), measured from the 1.5-inch left margin.
+     Text is 6 inches wide; the cue sits 2.2 in in, dialogue 1 in in (3.5 in wide), parentheticals 1.6 in in. */
+  var LAY = { scene: { ind: 0, w: 60 }, action: { ind: 0, w: 60 }, shot: { ind: 0, w: 60 }, transition: { ind: 0, w: 60 },
+    character: { ind: 22, w: 38 }, paren: { ind: 16, w: 24 }, dialogue: { ind: 10, w: 35 } };
+  SC.LAYOUT = LAY;
   var GAP = { scene: 2, action: 1, character: 1, paren: 0, dialogue: 0, transition: 1, shot: 1, note: 0 };
+  /* Word wrap for monospace text: lines of at most `width` characters (very long words are cut). */
+  SC.wrap = function (text, width) {
+    var words = String(text || '').replace(/\s+/g, ' ').trim().split(' '), lines = [], line = '';
+    width = Math.max(4, width || 60);
+    if (!words[0]) return [''];
+    words.forEach(function (w) {
+      while (w.length > width) { if (line) { lines.push(line); line = ''; } lines.push(w.slice(0, width)); w = w.slice(width); }
+      if (!w) return;
+      if (!line) line = w;
+      else if (line.length + 1 + w.length <= width) line += ' ' + w;
+      else { lines.push(line); line = w; }
+    });
+    if (line || !lines.length) lines.push(line);
+    return lines;
+  };
+  /* What a block looks like on the printed page: capitals for headings, cues, transitions and shots; brackets on parentheticals. */
+  SC.printText = function (b) {
+    var x = String(b.x || '').replace(/\s+/g, ' ').trim();
+    if (b.t === 'scene' || b.t === 'character' || b.t === 'transition' || b.t === 'shot') return x.toUpperCase();
+    if (b.t === 'paren') return /^\(.*\)$/.test(x) ? x : '(' + x.replace(/^\(|\)$/g, '') + ')';
+    return x;
+  };
+  function blockLines(b) {
+    var lay = LAY[b.t] || LAY.action, lines = SC.wrap(SC.printText(b), lay.w);
+    if (b.t === 'paren') lines = lines.map(function (l, k) { return k ? ' ' + l : l; });   // hanging indent after "("
+    return lines;
+  }
   SC.lines = function (blocks) {
     var n = 0;
     (blocks || []).forEach(function (b) {
-      if (b.t === 'note') return;
-      var w = WIDTH[b.t] || 61, len = String(b.x || '').length;
-      n += (GAP[b.t] || 0) + Math.max(1, Math.ceil(len / w));
+      if (b.t === 'note' || !String(b.x || '').trim()) return;
+      n += (GAP[b.t] || 0) + blockLines(b).length;
     });
     return n;
   };
@@ -427,9 +458,20 @@
     if ((t === 'dialogue' || t === 'action') && /^\(.*\)$/.test(s) && t === 'dialogue') return 'paren';
     return t;
   };
+  /* Fountain text. The title page follows the PDF export's settings (doc.title_page): with blind read on, no Author
+     and no Contact. Multi-line values are indented on the lines after the key, as Fountain wants. */
   SC.fountain = function (project, author) {
-    var doc = project.doc || {}, blocks = doc.script || [], out = ['Title: ' + (project.title || 'Untitled'), 'Credit: Written by', 'Author: ' + (author || 'Anonymous'),
-      'Draft date: ' + new Date().toLocaleDateString(), ''], prev = null;
+    var doc = project.doc || {}, blocks = doc.script || [], tp = SC.titleInfo(project, author), prev = null;
+    var out = ['Title: ' + (project.title || 'Untitled')];
+    function multi(key, val) {
+      var rows = String(val || '').split(/\r?\n/).map(function (s) { return s.trim(); }).filter(Boolean);
+      if (!rows.length) return;
+      if (rows.length === 1) out.push(key + ': ' + rows[0]); else { out.push(key + ':'); rows.forEach(function (r) { out.push('    ' + r); }); }
+    }
+    if (!tp.blind) { out.push('Credit: Written by'); out.push('Author: ' + (tp.by || 'Anonymous')); }
+    multi('Draft date', tp.draft || new Date().toLocaleDateString());
+    if (!tp.blind) { multi('Contact', tp.contact); multi('Notes', tp.reg); }
+    out.push('');
     blocks.forEach(function (b) {
       var x = String(b.x || '').trim(), line;
       if (b.t === 'scene') line = /^(INT|EXT|EST|INT\.?\/EXT|I\/E)[\.\s]/i.test(x) ? x.toUpperCase() : '.' + x.toUpperCase();
@@ -490,6 +532,201 @@
       });
     });
     return out;
+  };
+
+  /* ---------------------------------------------------------------- submission-ready pages (the PDF export) */
+  SC.LINES = { letter: 55, a4: 58 };      // body lines a page: 1 in top, at least 0.8 in bottom, 6 lines an inch
+  SC.PRESETS = {
+    spec: { name: 'Standard spec script', blind: false },
+    contest: { name: 'Blind-read contest (80–125 pp)', blind: true, range: [80, 125], hard: true },
+    short: { name: 'Short film', blind: false, range: [1, 40], sweet: [5, 15] },
+    pilot: { name: 'TV pilot', blind: false }
+  };
+  SC.PRESET_ORDER = ['spec', 'contest', 'short', 'pilot'];
+  SC.presetFor = function (format) { return format === 'short' ? 'short' : /^pilot/.test(format || '') ? 'pilot' : 'spec'; };
+  /* The page range a preset checks: [min, max], hard = outside it gets the script thrown out. */
+  SC.presetRange = function (key, format) {
+    var p = SC.PRESETS[key] || SC.PRESETS.spec, f = OS.FORMATS[format] || OS.FORMATS.feature;
+    if (p.range) return { range: p.range, sweet: p.sweet || null, hard: !!p.hard, what: key === 'contest' ? 'the contest allows' : 'a short film runs' };
+    if (key === 'pilot') { var pf = OS.FORMATS[/^pilot/.test(format || '') ? format : 'pilot60']; return { range: pf.pages, hard: false, what: 'a ' + pf.name.toLowerCase() + ' usually runs' }; }
+    return { range: f.pages, hard: false, what: 'a ' + f.name.toLowerCase() + ' usually runs' };
+  };
+  SC.draftLabel = function (when) {
+    var d = when || new Date();
+    return 'First draft · ' + d.getDate() + ' ' + ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][d.getMonth()] + ' ' + d.getFullYear();
+  };
+  /* The title-page settings with their defaults filled in (doc.title_page holds what the writer changed). */
+  SC.titleInfo = function (project, author) {
+    var doc = project.doc || {}, tp = doc.title_page && typeof doc.title_page === 'object' ? doc.title_page : {};
+    var preset = SC.PRESETS[tp.preset] ? tp.preset : SC.presetFor(project.format);
+    return { preset: preset, by: tp.by != null ? String(tp.by) : String(author || ''), contact: String(tp.contact || ''),
+      draft: tp.draft != null ? String(tp.draft) : SC.draftLabel(), reg: String(tp.reg || ''),
+      blind: tp.blind != null ? !!tp.blind : !!SC.PRESETS[preset].blind, scenes: !!tp.scenes, paper: tp.paper === 'a4' ? 'a4' : 'letter' };
+  };
+  function sentenceEnd(s) { return /[.!?…]["'”’)\]]*$/.test(String(s || '').trim()) || /--$/.test(String(s || '').trim()); }
+  function cueBase(x) { return String(x || '').replace(/\s*\(CONT['’]D\)\s*$/i, '').trim(); }
+  /* Real pagination. Returns {pages: [[line]], count, notes, max, pageOf: {block index: page}}; a line is {t, x, b?, n?}
+     with t = scene/action/character/paren/dialogue/transition/shot/more/blank. Rules: notes never print; a scene heading
+     never ends a page; a cue stays with its first line; dialogue breaks at a sentence with (MORE) and NAME (CONT'D);
+     action breaks at a sentence with at least two lines on each side. */
+  SC.paginate = function (blocks, opts) {
+    opts = opts || {};
+    var max = SC.LINES[opts.paper] || SC.LINES.letter, notes = 0, pages = [], page = [], pageOf = {}, sceneNo = 0, els = [], B = [];
+    (blocks || []).forEach(function (b, i) {
+      if (b.t === 'note') { if (String(b.x || '').trim()) notes++; return; }
+      if (String(b.x || '').trim()) B.push({ t: LAY[b.t] ? b.t : 'action', x: b.x, i: i });
+    });
+    for (var j = 0; j < B.length; j++) {
+      var b = B[j];
+      if (b.t === 'character') {
+        var flat = [{ t: 'character', x: SC.printText(b), b: b.i }];
+        while (j + 1 < B.length && (B[j + 1].t === 'dialogue' || B[j + 1].t === 'paren')) {
+          var p = B[++j], ls = blockLines(p);
+          ls.forEach(function (l, k) { flat.push({ t: p.t, x: l, b: p.i, end: k === ls.length - 1, sent: sentenceEnd(l) }); });
+        }
+        els.push({ kind: 'speech', lines: flat });
+      } else {
+        var lines = blockLines(b).map(function (l) { return { t: b.t, x: l, b: b.i }; });
+        if (b.t === 'scene') { sceneNo++; if (opts.sceneNumbers) lines[0].n = sceneNo; }
+        els.push({ kind: b.t, lines: lines });
+      }
+    }
+    function room() { return max - page.length; }
+    function fresh() { return page.every(function (l) { return l.t === 'scene' || l.t === 'blank'; }); }
+    function put(l) { if (l.b != null && pageOf[l.b] == null) pageOf[l.b] = pages.length + 1; page.push(l); }
+    function blanks(n) { for (var k = 0; k < n; k++) page.push({ t: 'blank', x: '' }); }
+    function breakPage() {   // a scene heading left at the bottom moves to the next page with its scene
+      var carry = [];
+      while (page.length && page[page.length - 1].t === 'blank') page.pop();
+      while (page.length && page[page.length - 1].t === 'scene') carry.unshift(page.pop());
+      while (page.length && page[page.length - 1].t === 'blank') page.pop();
+      if (page.length) pages.push(page); else if (!carry.length) return;
+      page = [];
+      carry.forEach(function (l) { if (l.b != null) delete pageOf[l.b]; put(l); });
+    }
+    els.forEach(function (el) {
+      var rest = el.lines, guard = 0;
+      while (rest.length && guard++ < 500) {
+        var gap = page.length ? (GAP[el.kind] || 0) : 0, avail = room() - gap, k;
+        if (rest.length <= avail) { blanks(gap); rest.forEach(put); return; }
+        if (el.kind === 'speech') {
+          var best = 0, any = 0;
+          for (k = 1; k < rest.length - 1 && k + 2 <= avail; k++) {
+            if (rest[k].t === 'character') continue;
+            if (rest[k].t === 'dialogue' && (rest[k].sent || (rest[k].end && rest[k + 1].t !== 'dialogue'))) best = k;
+            any = k;
+          }
+          if (!best && fresh()) best = any;
+          if (best) {
+            blanks(gap); rest.slice(0, best + 1).forEach(put);
+            page.push({ t: 'more', x: '(MORE)' });
+            breakPage();
+            rest = [{ t: 'character', x: cueBase(rest[0].x) + " (CONT'D)" }].concat(rest.slice(best + 1));
+            continue;
+          }
+        } else if (el.kind !== 'scene' && el.kind !== 'transition' && rest.length >= 4) {
+          for (k = Math.min(avail, rest.length - 2); k >= 2; k--) if (sentenceEnd(rest[k - 1].x)) break;
+          if (k < 2 && fresh()) k = Math.min(avail, rest.length - 1);
+          if (k >= 2 || (fresh() && k >= 1)) { blanks(gap); rest.slice(0, k).forEach(put); breakPage(); rest = rest.slice(k); continue; }
+        }
+        if (fresh()) { var take = Math.max(1, avail); blanks(gap); rest.slice(0, take).forEach(put); breakPage(); rest = rest.slice(take); continue; }   // last resort
+        breakPage();
+      }
+    });
+    if (page.length) { while (page.length && page[page.length - 1].t === 'blank') page.pop(); pages.push(page); }
+    return { pages: pages, count: pages.length, notes: notes, max: max, pageOf: pageOf, scenes: sceneNo };
+  };
+  function editDistance1(a, b) {   // true when a and b differ by exactly one letter (added, removed or changed)
+    if (a === b || Math.abs(a.length - b.length) > 1) return false;
+    var i = 0, j = 0, diff = 0;
+    while (i < a.length && j < b.length) {
+      if (a[i] === b[j]) { i++; j++; continue; }
+      if (++diff > 1) return false;
+      if (a.length > b.length) i++; else if (b.length > a.length) j++; else { i++; j++; }
+    }
+    return diff + (a.length - i) + (b.length - j) === 1;
+  }
+  /* The contest check: [{lvl: good|warn|bad|tip, text}], worst first. */
+  SC.contestCheck = function (project, info, pag) {
+    var doc = project.doc || {}, blocks = doc.script || [], out = [], pr = SC.presetRange(info.preset, project.format);
+    pag = pag || SC.paginate(blocks, { paper: info.paper, sceneNumbers: info.scenes });
+    function add(lvl, text) { out.push({ lvl: lvl, text: text }); }
+    function pg(i) { return pag.pageOf[i] ? 'page ' + pag.pageOf[i] : 'the pages'; }
+    var n = pag.count;
+    if (!n) add('bad', 'There are no pages to send yet.');
+    else if (n < pr.range[0] || n > pr.range[1]) add(pr.hard ? 'bad' : 'warn', UI.plural(n, 'page') + ': ' + pr.what + ' ' + pr.range[0] + '–' + pr.range[1] + '.' + (pr.hard ? ' Readers check the rules before page 1.' : ''));
+    else if (pr.sweet && (n < pr.sweet[0] || n > pr.sweet[1])) add('tip', UI.plural(n, 'page') + ' is fine; festivals program ' + pr.sweet[0] + ' to ' + pr.sweet[1] + '-minute shorts most often.');
+    else add('good', UI.plural(n, 'page') + ' (plus the title page): inside the ' + pr.range[0] + '–' + pr.range[1] + ' ' + pr.what + '.');
+    add('good', 'Courier 12 pt, 1.5-inch left margin, about ' + pag.max + ' lines a page, page numbers top right from page 2.');
+    // who wrote it, and blind reads
+    var text = [], name = String(info.by || '').trim(), nameRe = null;
+    blocks.forEach(function (b, i) { if (b.t !== 'note') text.push([i, String(b.x || '')]); });
+    if (name.length >= 4 && /\s/.test(name)) nameRe = new RegExp('\\b' + name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/\s+/g, '\\s+') + '\\b', 'i');
+    var email = /[\w.+-]+@[\w-]+\.[\w.]+/, phone = /(\+?\d[\d\s().-]{8,}\d)/;
+    if (info.blind) {
+      var leak = null;
+      if (nameRe && nameRe.test(project.title || '')) leak = 'Your name is in the title.';
+      text.some(function (t) {
+        if (nameRe && nameRe.test(t[1])) { leak = 'Your name appears on ' + pg(t[0]) + ': blind-read contests disqualify for that.'; return true; }
+        if (email.test(t[1])) { leak = 'An email address appears on ' + pg(t[0]) + '. Take it out for a blind read.'; return true; }
+        if (phone.test(t[1]) && t[1].replace(/\D/g, '').length >= 9) { leak = 'Something like a phone number appears on ' + pg(t[0]) + '. Take it out for a blind read.'; return true; }
+        return false;
+      });
+      if (leak) add('bad', leak);
+      else add('good', 'Blind read: no name, contact or registration number on any page.');
+    } else {
+      if (info.preset === 'contest') add('bad', 'Blind read is off, so your name is on the title page. This kind of contest wants it nowhere.');
+      if (!name) add('warn', 'The title page has no "written by" yet.');
+      else add('good', 'Title page: written by ' + name + '.');
+      if (!String(info.contact || '').trim()) add('tip', 'Add a contact block (email, phone or agent): it goes bottom left on the title page.');
+    }
+    if (pag.notes) add('good', UI.plural(pag.notes, 'note') + ' stay out of the PDF: notes are for you, never printed.');
+    // scene headings
+    var noIE = [], noTime = [];
+    blocks.forEach(function (b, i) {
+      if (b.t !== 'scene' || !String(b.x || '').trim()) return;
+      var x = String(b.x).toUpperCase().trim();
+      if (!/^(INT|EXT|EST|INT\.?\/EXT|I\/E)[\.\s]/.test(x)) noIE.push(i);
+      else if (!/\s[-–—]\s*\S/.test(x) && !/\b(DAY|NIGHT|MORNING|EVENING|AFTERNOON|DAWN|DUSK|SUNSET|SUNRISE|NOON|MIDNIGHT|CONTINUOUS|LATER|SAME)\b/.test(x)) noTime.push(i);
+    });
+    if (noIE.length) add('warn', UI.plural(noIE.length, 'scene heading') + ' don\'t start with INT. or EXT. (first on ' + pg(noIE[0]) + ': "' + String(blocks[noIE[0]].x).toUpperCase().slice(0, 30) + '").');
+    if (noTime.length) add('warn', UI.plural(noTime.length, 'scene heading') + ' have no time of day, like " - NIGHT" (first on ' + pg(noTime[0]) + ').');
+    if (!noIE.length && !noTime.length && pag.scenes) add('good', 'Every scene heading has INT. or EXT. and a time of day.');
+    // character names
+    var cues = Object.keys(SC.characterLines(blocks)).map(function (c) { return cueBase(c).replace(/\s*\(.*\)\s*$/, ''); }).filter(function (c, k, a) { return c.length >= 3 && a.indexOf(c) === k; });
+    var pairs = [];
+    cues.forEach(function (a, k) { cues.slice(k + 1).forEach(function (c) { if (editDistance1(a, c)) pairs.push(a + ' and ' + c); }); });
+    if (pairs.length) add('warn', pairs.slice(0, 2).join(', ') + ': one character spelled two ways? Even if they\'re two people, readers will mix them up.');
+    else if (cues.length) add('good', 'Character names are spelled the same way throughout.');
+    // long blocks
+    var longAction = [], longParen = [];
+    blocks.forEach(function (b, i) {
+      if (b.t === 'action' && String(b.x || '').trim() && blockLines(b).length > 4) longAction.push(i);
+      if (b.t === 'paren' && String(b.x || '').trim() && blockLines(b).length > 1) longParen.push(i);
+    });
+    if (longAction.length) add('tip', UI.plural(longAction.length, 'action paragraph') + ' run past four lines (first on ' + pg(longAction[0]) + '). Readers skim big blocks: break them up.');
+    else if (n) add('good', 'No action paragraph runs past four lines.');
+    if (longParen.length) add('tip', UI.plural(longParen.length, 'parenthetical') + ' run past one line (first on ' + pg(longParen[0]) + '). Keep them to a few words.');
+    if (!String(project.logline || '').trim()) add('tip', 'No logline yet. Most contests ask for one on the entry form; the Overview builder writes most of it.');
+    else add('good', 'There\'s a logline ready for the entry form.');
+    if (!String(project.title || '').trim() || /^untitled/i.test(project.title)) add('warn', 'Give it a real title before you send it.');
+    var order = { bad: 0, warn: 1, tip: 2, good: 3 };
+    return out.map(function (c, k) { c.k = k; return c; }).sort(function (a, b) { return order[a.lvl] - order[b.lvl] || a.k - b.k; });
+  };
+  /* The printable sheets as HTML: the title page (no number) and the pages ("2." top right from page 2). */
+  SC.titleHtml = function (project, info) {
+    var by = info.blind ? '' : String(info.by || '').trim(), contact = info.blind ? '' : String(info.contact || '').trim(), reg = info.blind ? '' : String(info.reg || '').trim();
+    var lines = function (s) { return String(s || '').split(/\r?\n/).map(function (r) { return '<div>' + esc(r) + '</div>'; }).join(''); };
+    return '<div class="pr-sheet pr-title pr-' + info.paper + '"><div class="pr-tt"><div class="pr-tt-name">' + esc(String(project.title || 'Untitled').toUpperCase()) + '</div>' +
+      (by ? '<div class="pr-tt-by">Written by</div><div>' + esc(by) + '</div>' : '') + '</div>' +
+      (contact ? '<div class="pr-tt-contact">' + lines(contact) + '</div>' : '') +
+      ((info.draft || reg) ? '<div class="pr-tt-draft">' + (info.draft ? lines(info.draft) : '') + (reg ? lines(reg) : '') + '</div>' : '') + '</div>';
+  };
+  SC.pageHtml = function (page, num, info) {
+    return '<div class="pr-sheet pr-page pr-' + info.paper + '">' + (num > 1 ? '<div class="pr-num">' + num + '.</div>' : '') + page.map(function (l) {
+      if (l.t === 'blank') return '<div class="pr-l"> </div>';
+      return '<div class="pr-l pr-' + l.t + '">' + (l.n ? '<span class="pr-sn l">' + l.n + '</span><span class="pr-sn r">' + l.n + '</span>' : '') + esc(l.x) + '</div>';
+    }).join('') + '</div>';
   };
   OS.charge = function (v) { return v == null ? '' : v > 1 ? '++' : v > 0 ? '+' : v < -1 ? '−−' : v < 0 ? '−' : '±'; };
   OS.chargeWord = function (v) { return v == null ? 'not set' : v > 1 ? 'very positive' : v > 0 ? 'positive' : v < -1 ? 'very negative' : v < 0 ? 'negative' : 'neutral'; };

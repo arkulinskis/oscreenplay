@@ -11,9 +11,9 @@ masterclass) and the project workspace with six tabs: Overview, Cast, Web, Chron
 suggestion comes from the lexicon and rules in the JavaScript engine. An LLM may come later: keep generation behind `OS.*`.
 
 **Where it lives:**
-- Repo **github.com/arkulinskis/oscreenplay**. The native-Forms version is on branch `forms` (2026-11-06) until the user
-  approves it; master still runs the older JavaScript-pages app from `Documents/CLAUDE/OScreenplay` (source + deploy.py).
-  After the merge: this folder is the app (layout git), the old folder gets retired (CONVERT.md step 5).
+- Repo **github.com/arkulinskis/oscreenplay**. Native Anvil Forms on **master** since the `forms` branch was merged (found
+  2026-11-06): this folder is the app (layout git, deploy = push to master); the old JavaScript-pages folder
+  `Documents/CLAUDE/OScreenplay` is retired.
 - Live: https://oscreenplay.com. Prepsto feedback code `bz9rpjj`.
 
 **What the user wants:** "Projection Room": serious but modern (books, paper, cinema, reels), elevated. Warm paper
@@ -35,7 +35,7 @@ spark words, Story Circle, The Godfather as a masterclass. Claude assumes detail
    `--shots DIR` = screenshots of every page: read them.
 5. Design kit (APP_MAKER/design/README.md) for anything visual: `python -I APP_MAKER/tools/design_check.py <folder>`
    must stay `DESIGN CHECK CLEAN`.
-6. Commit only your files as arkulinskis with the Co-Authored-By line; push (branch `forms` until merged, then master).
+6. Commit only your files as arkulinskis with the Co-Authored-By line; push to master.
 
 ## Architecture
 
@@ -63,18 +63,38 @@ theme/assets/
   os-data.js        the lexicon (OS.S, OS.L, OS.REACT, OS.REL, OS.GENRES, names, prompts)
   os-engine.js      structures, Spark, reactions, doctor, script/Fountain, SVG (wheel, braid, shape, radar), popovers
   os-studio.js      fields with dice/idea buttons, scene/event/relationship editors (their dialogs are JS: UI.modal)
-  os-tabs.js        OS.tabs.overview/cast/web/chronology/storyline/pages = function (el, T)
+  os-tabs.js        OS.tabs.overview/cast/web/chronology/storyline/pages = function (el, T); the Pages tab also holds the
+                    Export dialog (openExport/printPages), the sprint picker and the replace safety net (replaceScript)
+  os-read.js        OS.tableRead(T, api): the table read (speechSynthesis, voices, the fixed player bar)
   app.css           tokens, design kit, shared pieces, engine look, project tabs, pages, role layer
 ```
 
-Load order in head_html: app-kit.js, os-ui.js, os-data.js, os-engine.js, os-studio.js, os-tabs.js (the engine reads
-OS.REACT at load). The engine's extra icons live in app-kit.js `UI.ICONS` so icons.css has them.
+Load order in head_html: app-kit.js, os-ui.js, os-data.js, os-engine.js, os-studio.js, os-tabs.js, os-read.js (the engine
+reads OS.REACT at load). The engine's extra icons live in app-kit.js `UI.ICONS` so icons.css has them.
 
 **The project document** (`projects.doc`, normalised by `OS.normalize`): premise, theme, theme_answer, tone, world, notes,
 logline_parts; characters[{id, name, role, archetype, want, need, wound, lie, flaw, fear, value, secret, quirk, voice,
 traits{O,C,E,A,N}, x, y, ...}]; relations; events (array order = chronology); scenes (array order = telling order, sorted by
-beat with `T.sortScenes()`); plants; script[{t, x, s?}]. Columns beside it: title, logline, genre, format, structure,
-color, stats. Tables: users, app_settings, feedback, projects, sparks (all server-only).
+beat with `T.sortScenes()`); plants; script[{t, x, s?}]; title_page {preset, by, contact, draft, reg, blind, scenes, paper}
+(the PDF export's settings, read through `OS.script.titleInfo`); table_read {narrator, dialogue_only, rate, voices:
+{NAME: {v, p}}}; pages_backup {at, why, script} (one earlier version of the pages, kept by "Replace the pages").
+Columns beside it: title, logline, genre, format, structure, color, stats. Tables: users, app_settings, feedback,
+projects, sparks, habits, error_log (all server-only).
+
+**Submission-ready PDF (2026-11-20):** `OS.script` in os-engine.js: `LAYOUT` (characters from the 1.5 in margin at 10 an
+inch: cue 22, dialogue 10 / 35 wide, paren 16 / 24 wide, text 60), `wrap`, `paginate(blocks, {paper, sceneNumbers})`
+(55 lines Letter / 58 A4; notes skipped; a scene heading at the bottom moves to the next page; dialogue breaks at a
+sentence with (MORE) + NAME (CONT'D); action breaks at a sentence, 2+ lines each side), `PRESETS`, `contestCheck`,
+`titleHtml`, `pageHtml`. Printing builds `#os-print` on body + an `@page {margin: 0}` style, adds `html.os-printing`
+(app.css hides everything else in print), calls `window.print()` and cleans up on `afterprint`. The `.pr-*` sheets are
+true inches, so the dialog's preview (scaled with `--k`) and the printout are the same HTML. Without `os-printing` the old
+`@media print` rules still print the editor as a fallback.
+
+**Writing habit (2026-11-20):** the Pages tab's `input` handler calls `T.addTyped(words added)` (never for pastes: the
+`pasting` flag; drafts and imports don't fire input). `flush()` in os-ui.js sends `typed`, `sprint`, `day` (local date)
+in the save patch; `Projects.save_project` hands them to `Habits.log_typing` inside try/except. `habits` row per writer:
+goal, days {"YYYY-MM-DD": {w, s}} (120 days). `get_desk(today)` returns `habit` (None before the table exists: the card
+hides). Sprints live in the workspace (`T.sprint`: start/stop/active/left/words), the Pages toolbar shows the chip.
 
 ## Recipes
 
@@ -87,6 +107,9 @@ color, stats. Tables: users, app_settings, feedback, projects, sparks (all serve
   `{destroy}`; add a tab link to the Pages/Project template (with a count Label `c_<tab>`), add it to TABS in
   Pages/Project/__init__.py, and to the tests.
 - **The engine calls the server:** only names in `os_engine.ENGINE_CALLS`; add new ones there.
+- **A new contest check:** add it in `SC.contestCheck` (os-engine.js) as `add(lvl, text)`; use `pg(blockIndex)` for "page N".
+- **Change the page geometry:** `LAY` + `SC.LINES` in os-engine.js and the `.pr-*` rules in app.css must agree (inches vs
+  characters at 10 an inch, lines at 6 an inch).
 - **More ideas / reactions / structures / doctor checks:** os-data.js and os-engine.js as before (see the comments there):
   slot pools `"text|tags|extra"`, `OS.REACT` rules without spaces, `OS.STRUCTURES` + `STRUCTURES` in Projects.py.
 - **New sample:** a dict in Samples.py appended to SAMPLES; then Admin -> Demo data -> Reload on the live app.
@@ -104,10 +127,17 @@ color, stats. Tables: users, app_settings, feedback, projects, sparks (all serve
 - Role colours (OS.roleColor) carry white initials: keep them at 4.5:1.
 - Shell heredocs eat backslashes: write patch scripts with the Write tool.
 - Fraunces misdraws Latvian macrons (ANVIL_NOTES): keep user-typed text in Inter.
+- Tests that fake speech: `window.speechSynthesis` is a read-only getter in Chrome, so `window.speechSynthesis = stub` is
+  silently ignored. Use `Object.defineProperty(window, 'speechSynthesis', {configurable: true, value: stub})`. Headless
+  Chrome has no voices and never fires `onend` for real speech (os-read.js has a watchdog that moves on).
+- `window.print()` returns at once in headless Chrome: stub it in tests and read `#os-print` (it stays until afterprint).
+- After `tools/assets.py` rewrites anvil.yaml in block style, keep Anvil's compact layout and change only the `?v=`
+  hashes (ANVIL_NOTES).
 
 ## Privacy & Terms (legal kit)
 
-From APP_MAKER/legal-kit (`apps/oscreenplay.json` for this app's facts): `python -I build.py oscreenplay`, then install
-(after the merge `python -I install.py oscreenplay`; before it, into this folder as in ANVIL_NOTES "unregistered folder"),
-then `python tools/assets.py`. Sign-up keeps the consent tick box (template Auth page); consent is stored in
+From APP_MAKER/legal-kit (`apps/oscreenplay.json` for this app's facts): `python -I build.py oscreenplay`, then
+`python -I install.py oscreenplay` (it updates theme/assets/legal-kit.js and its hash in anvil.yaml). The facts cover the
+writing habit (daily word counts, 120 days), title-page details, the earlier version of the pages and the table read
+(browser voices; online voices send lines to the browser maker). Sign-up keeps the consent tick box (template Auth page); consent is stored in
 users.legal_version, legal_accepted_at, legal_source.

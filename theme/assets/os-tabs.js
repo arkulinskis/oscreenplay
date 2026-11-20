@@ -374,7 +374,7 @@
   function textOf(el) { return (el.innerText || el.textContent || '').replace(/\r?\n/g, ' ').replace(/ /g, ' '); }
 
   OS.tabs.pages = function (el, T) {
-    var doc = T.doc, cur = -1, statTimer = null;
+    var doc = T.doc, cur = -1, statTimer = null, reader = null, pasting = false;
     function blocks() { return doc.script; }
     function blockHtml(b, i) {
       return '<div class="pg-b ' + esc(b.t) + '" contenteditable="' + (PLAIN ? 'plaintext-only' : 'true') + '" spellcheck="true" data-i="' + i + '" data-ph="' + esc(PH[b.t] || '') + '" data-label="' + esc(SC.NAME[b.t] || '') + '">' + esc(b.x || '') + '</div>';
@@ -415,19 +415,58 @@
       else return '<span>' + esc(SC.NAME[b.t]) + ' · Enter: next element · Tab: change element</span>';
       return '<span>' + esc(SC.NAME[b.t]) + ':</span>' + chips.map(function (c) { return '<button type="button" data-sugg="' + esc(c) + '">' + esc(c.trim()) + '</button>'; }).join('');
     }
+    function tool(attr, icon, label, extra) {
+      return '<button type="button" class="ui-btn sm" ' + attr + ' title="' + esc(label) + '"' + (extra || '') + '>' + UI.icon(icon) + '<span class="pg-lbl">' + esc(label) + '</span></button>';
+    }
+    function sprintHtml() {
+      if (T.readonly || !T.sprint) return '';
+      if (!T.sprint.active()) return tool('data-sprint', 'clock', 'Sprint');
+      return '<span class="pg-sprint" role="timer" aria-label="Writing sprint">' + UI.icon('clock') + '<b data-sprint-left>' + esc(T.sprint.left()) + '</b>' +
+        '<span data-sprint-words>' + UI.plural(T.sprint.words(), 'word') + '</span><button type="button" data-sprint-stop aria-label="Stop the sprint" title="Stop the sprint">' + UI.icon('x') + '</button></span>';
+    }
     function toolsHtml() {
-      var b = blocks()[cur];
+      var b = blocks()[cur], canRead = OS.tableReadSupported && OS.tableReadSupported();
       return '<div class="pg-types" role="toolbar" aria-label="Element type">' + SC.TYPES.map(function (t, i) {
         return '<button type="button" data-type="' + t[0] + '" class="' + (b && b.t === t[0] ? 'on' : '') + '" title="' + esc(t[1]) + ' (Ctrl+' + (i + 1) + ')">' + esc(t[2]) + '</button>';
-      }).join('') + '</div><span class="grow"></span>' +
-        '<button class="ui-btn sm" data-draft>' + UI.icon('wand') + 'Draft from cards</button><button class="ui-btn sm" data-import>' + UI.icon('upload') + 'Import</button>' +
-        '<button class="ui-btn sm" data-export>' + UI.icon('download') + 'Fountain</button><button class="ui-btn sm" data-print>' + UI.icon('print') + 'PDF</button>';
+      }).join('') + '</div><span class="grow"></span>' + sprintHtml() +
+        (canRead ? tool('data-read', 'volume', 'Table read', ' aria-pressed="' + (reader && reader.isOpen() ? 'true' : 'false') + '"') : '') +
+        tool('data-draft', 'wand', 'Draft from cards') + tool('data-import', 'upload', 'Import') + tool('data-export', 'download', 'Fountain') + tool('data-print', 'print', 'PDF');
     }
+    var WHY = { draft: 'before a fresh draft replaced them', 'import': 'before an import replaced them', restore: 'the ones you switched away from' };
+    function backupHtml() {
+      var bk = doc.pages_backup;
+      if (!bk || !Array.isArray(bk.script) || !bk.script.length) return '';
+      var d = new Date(bk.at || Date.now()), when = d.toLocaleDateString([], { day: 'numeric', month: 'short' }) + ', ' + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      return '<div class="pg-backup" data-backup>' + UI.icon('refresh') + '<span>Earlier pages are kept: ' + SC.pages(bk.script) + ' pp, ' + esc(WHY[bk.why] || 'saved') + ' (' + esc(when) + ').</span>' +
+        '<button type="button" class="ui-btn sm" data-restore>Bring them back</button></div>';
+    }
+    /* The safety net for "Replace the pages": the old pages stay in doc.pages_backup (one earlier version, saved with
+       the project), the toast offers Undo, and the notice above the page can bring them back later. */
+    function replaceScript(next, why, msg) {
+      if (doc.script.length) doc.pages_backup = { at: new Date().toISOString(), why: why, script: JSON.parse(JSON.stringify(doc.script)) };
+      doc.script = next; cur = -1;
+      T.touch(); draw();
+      UI.toast(msg, 'ok', doc.pages_backup ? { label: 'Undo', run: restoreBackup } : null);
+    }
+    function restoreBackup() {
+      var bk = doc.pages_backup;
+      if (!bk || !Array.isArray(bk.script)) return;
+      var now = doc.script;
+      doc.script = bk.script; cur = -1;
+      doc.pages_backup = now.length ? { at: new Date().toISOString(), why: 'restore', script: now } : null;
+      T.touch(); draw();
+      UI.toast('The earlier pages are back.' + (doc.pages_backup ? ' The others are kept, so you can switch again.' : ''), 'ok');
+    }
+    function confirmReplace() {
+      return UI.confirm({ title: 'Replace all ' + SC.pages(doc.script) + ' pages?', ok: 'Replace the pages', danger: true,
+        text: 'Your current pages (' + UI.plural(doc.script.length, 'element') + ') are kept as an earlier version: Undo right after, or bring them back from this tab any time.' });
+    }
+    function author() { return T.readonly ? (T.P.author || 'the author') : ((T.me || {}).name || ''); }
     function draw(focusIndex, focusOff) {
-      var B = blocks(), me = T.me || {};
-      el.innerHTML = '<div class="pg-tools" data-tools>' + toolsHtml() + '</div><div class="pg-sugg" data-sugg-bar>' + suggHtml() + '</div>' +
+      var B = blocks(), tinfo = SC.titleInfo(T.P, author());
+      el.innerHTML = '<div class="pg-tools" data-tools>' + toolsHtml() + '</div><div class="pg-sugg" data-sugg-bar>' + suggHtml() + '</div>' + backupHtml() +
         '<div class="pg-layout"><nav class="pg-side ui-card" data-side>' + sideHtml() + '</nav><div><div class="pg-paper os-paper" data-paper>' +
-        '<div class="pg-titlepage"><b>' + esc(T.P.title || 'Untitled') + '</b>written by<br>' + esc(T.readonly ? (T.P.author || 'the author') : (me.name || '')) + '</div>' +
+        '<div class="pg-titlepage"><b>' + esc(T.P.title || 'Untitled') + '</b>' + (tinfo.blind ? '<span class="pg-blind">blind read: no name on any page</span>' : 'written by<br>' + esc(tinfo.by)) + '</div>' +
         (B.length ? B.map(blockHtml).join('') : '<div class="pg-blank"><h3>The blank page, defeated.</h3><p>' + (doc.scenes.length ? 'You have ' + UI.plural(doc.scenes.length, 'scene card') + '. Turn them into a first draft: headings, action, the characters in each scene, and notes with each goal and conflict.' : 'Start typing, or add scene cards in the Storyline first and draft from them.') + '</p>' +
           '<div class="ui-row" style="justify-content:center">' + (doc.scenes.length ? '<button class="ui-btn primary" data-draft>' + UI.icon('wand') + 'Draft from my cards</button>' : '') + '<button class="ui-btn" data-start>' + UI.icon('edit') + 'Start writing</button><button class="ui-btn" data-import>' + UI.icon('upload') + 'Import Fountain</button></div></div>') +
         '</div><div class="pg-stat" style="max-width:720px;margin:10px auto 0" data-stats>' + statsHtml() + '</div><div class="pg-under" data-under>' + underHtml() + '</div></div></div>';
@@ -478,7 +517,9 @@
     el.addEventListener('input', function (e) {
       var n = e.target.closest('.pg-b'); if (!n) return;
       var i = +n.getAttribute('data-i'), b = blocks()[i]; if (!b) return;
+      var wordsBefore = OS.words(b.x);
       b.x = textOf(n);
+      if (!pasting && T.addTyped) T.addTyped(OS.words(b.x) - wordsBefore);   // the writing habit: words typed here
       if (b.t === 'action' && /^(INT|EXT|EST|I\/E)[\.\s]/i.test(b.x)) setType(i, 'scene');
       else if (b.t === 'dialogue' && /^\(/.test(b.x)) setType(i, 'paren');
       T.touch(); refreshStats();
@@ -495,7 +536,8 @@
           T.touch(); draw(at + parsed.length - 1); UI.toast('Pasted ' + UI.plural(parsed.length, 'element') + ', formatted.', 'ok'); return;
         }
       }
-      document.execCommand('insertText', false, text.replace(/\r?\n+/g, ' '));
+      pasting = true;
+      try { document.execCommand('insertText', false, text.replace(/\r?\n+/g, ' ')); } finally { pasting = false; }
     });
     el.addEventListener('keydown', function (e) {
       var n = e.target.closest('.pg-b'); if (!n) return;
@@ -543,9 +585,13 @@
           '<button class="ui-btn block danger" data-dm="replace">' + UI.icon('refresh') + 'Replace all the pages with a fresh draft</button></div>');
         m.el.addEventListener('click', function (ev) {
           var d = ev.target.closest('[data-dm]'); if (!d) return;
-          if (d.getAttribute('data-dm') === 'missing') { var a = SC.draft(doc, true); doc.script.push.apply(doc.script, a); UI.toast(a.length ? 'Added the missing scenes at the end.' : 'Every card is already in the pages.'); }
-          else doc.script = SC.draft(doc);
-          T.touch(); m.close(); draw();
+          m.close();
+          if (d.getAttribute('data-dm') === 'missing') {
+            var a = SC.draft(doc, true); doc.script.push.apply(doc.script, a); T.touch(); draw();
+            UI.toast(a.length ? 'Added the missing scenes at the end.' : 'Every card is already in the pages.');
+            return;
+          }
+          confirmReplace().then(function (yes) { if (yes) replaceScript(SC.draft(doc), 'draft', 'Fresh draft ready. Your old pages are kept.'); });
         });
         return;
       }
@@ -562,8 +608,13 @@
           var d = ev.target.closest('[data-imp]'); if (!d) return;
           var parsed = SC.parseFountain(im.el.querySelector('[data-src]').value);
           if (!parsed.length) { UI.toast('Nothing to import there.', 'error'); return; }
-          if (d.getAttribute('data-imp') === 'append') doc.script.push.apply(doc.script, parsed); else doc.script = parsed;
-          T.touch(); im.close(); draw(); UI.toast('Imported ' + UI.plural(parsed.length, 'element') + '.', 'ok');
+          if (d.getAttribute('data-imp') === 'append') { doc.script.push.apply(doc.script, parsed); T.touch(); im.close(); draw(); UI.toast('Imported ' + UI.plural(parsed.length, 'element') + '.', 'ok'); return; }
+          if (!doc.script.length) { replaceScript(parsed, 'import', 'Imported ' + UI.plural(parsed.length, 'element') + '.'); im.close(); return; }
+          confirmReplace().then(function (yes) {
+            if (!yes) return;
+            im.close();
+            replaceScript(parsed, 'import', 'Imported ' + UI.plural(parsed.length, 'element') + '. Your old pages are kept.');
+          });
         });
         return;
       }
@@ -576,10 +627,119 @@
         } catch (err) { UI.modal('<h2>Your screenplay as Fountain</h2><textarea rows="16" style="font-family:var(--font-script)">' + esc(txt) + '</textarea>'); }
         return;
       }
-      if (e.target.closest('[data-print]')) { if (!doc.script.length) { UI.toast('There are no pages to print yet.'); return; } window.print(); }
+      if (e.target.closest('[data-print]')) { openExport(); return; }
+      if (e.target.closest('[data-restore]')) { restoreBackup(); return; }
+      if (e.target.closest('[data-read]')) {
+        if (!reader) reader = OS.tableRead(T, { start: function () { return cur >= 0 ? cur : 0; }, paper: function () { return el; } });
+        if (reader.isOpen()) reader.close(); else reader.open();
+        refreshChrome();
+        return;
+      }
+      if (e.target.closest('[data-sprint-stop]')) { T.sprint.stop(); return; }
+      if (e.target.closest('[data-sprint]')) { openSprint(); return; }
     });
+
+    /* ---- writing sprints (the clock itself lives in the workspace, os-ui.js) */
+    function openSprint() {
+      var m = UI.modal('<h2>Sprint</h2><p class="muted">Write against the clock. Every word you type counts, and the clock keeps running if you check another tab. Drafted, imported and pasted text doesn\'t count.</p>' +
+        '<div class="sp-pick">' + [10, 20, 30].map(function (n) { return '<button type="button" class="sp-min" data-min="' + n + '"><b>' + n + '</b><span>minutes</span></button>'; }).join('') + '</div>');
+      m.el.addEventListener('click', function (ev) {
+        var b = ev.target.closest('[data-min]'); if (!b) return;
+        m.close(); T.sprint.start(+b.getAttribute('data-min'));
+        var first = el.querySelector('.pg-b'); if (first && cur < 0) setCaret(first, textOf(first).length);
+        UI.toast('Rolling. ' + b.getAttribute('data-min') + ' minutes: go.', 'ok');
+      });
+    }
+    T.onSprint = function () { refreshChrome(); };
+
+    /* ---- the PDF export: title page, contest check, preview, real pagination */
+    function openExport() {
+      if (!doc.script.length) { UI.toast('There are no pages to export yet.'); return; }
+      var info = SC.titleInfo(T.P, author()), last = null, saveTimer = null, drawTimer = null;
+      var m = UI.modal('<h2>Export a PDF</h2><p class="muted ex-lead">Standard screenplay pages: Courier 12 pt, 1.5-inch left margin, page numbers top right from page 2, the title page on its own. Notes never print, and there\'s no watermark.</p>' +
+        '<div class="ex-grid"><form class="ex-form ui-stack" data-ex-form autocomplete="off">' +
+        '<label class="ui-field"><span>Made for</span><select name="preset">' + SC.PRESET_ORDER.map(function (k) { return '<option value="' + k + '">' + esc(SC.PRESETS[k].name) + '</option>'; }).join('') + '</select></label>' +
+        '<label class="ui-field" data-ex-named><span>Written by</span><input type="text" name="by" maxlength="120"></label>' +
+        '<label class="ui-field" data-ex-named><span>Contact <em>(email, phone or agent: bottom left)</em></span><textarea name="contact" rows="3" maxlength="300"></textarea></label>' +
+        '<label class="ui-field"><span>Draft</span><input type="text" name="draft" maxlength="80"></label>' +
+        '<label class="ui-field" data-ex-named><span>Registration <em>(optional)</em></span><input type="text" name="reg" maxlength="80" placeholder="WGA Reg. No. 1234567"></label>' +
+        '<div class="ex-opts"><label class="ui-check"><input type="checkbox" name="blind"> <span><b>Blind read</b>: no name, contact or registration on any page</span></label>' +
+        '<label class="ui-check"><input type="checkbox" name="scenes"> <span><b>Scene numbers</b>: for shooting scripts, leave off for a spec</span></label>' +
+        '<fieldset class="ex-paper"><legend>Paper</legend><label><input type="radio" name="paper" value="letter"> US Letter</label><label><input type="radio" name="paper" value="a4"> A4</label></fieldset></div>' +
+        '</form><div class="ex-side"><p class="ex-count" aria-live="polite"><b data-ex-n></b> <span data-ex-n-label></span></p>' +
+        '<h3 class="ex-h">Contest check</h3><ul class="ex-checks" data-ex-checks></ul>' +
+        '<div class="ex-prev" aria-hidden="true"><div class="ex-sheet" data-ex-t></div><div class="ex-sheet" data-ex-p1></div></div></div></div>' +
+        '<div class="ui-row ex-foot"><p class="fine-print">The print window opens: pick <b>Save as PDF</b>. ' + (T.readonly ? 'This is a sample, so the settings stay on this page.' : 'The settings are saved with this screenplay.') + '</p>' +
+        '<span class="ui-spacer"></span><button type="button" class="ui-btn ghost" data-close>Cancel</button><button type="button" class="ui-btn primary" data-ex-go>' + UI.icon('download') + 'Download PDF</button></div>', { wide: true });
+      m.el.classList.add('ex-dialog');
+      var f = m.el.querySelector('[data-ex-form]');
+      f.preset.value = info.preset; f.by.value = info.by; f.contact.value = info.contact; f.draft.value = info.draft; f.reg.value = info.reg;
+      f.blind.checked = info.blind; f.scenes.checked = info.scenes;
+      f.querySelector('[name=paper][value="' + info.paper + '"]').checked = true;
+      function read() {
+        return { preset: f.preset.value, by: f.by.value.trim(), contact: f.contact.value.trim(), draft: f.draft.value.trim(), reg: f.reg.value.trim(),
+          blind: f.blind.checked, scenes: f.scenes.checked, paper: (f.querySelector('[name=paper]:checked') || {}).value === 'a4' ? 'a4' : 'letter' };
+      }
+      var ICON = { good: 'check', warn: 'info', bad: 'x', tip: 'bulb' };
+      function render() {
+        info = read();
+        f.querySelectorAll('[data-ex-named]').forEach(function (l) { l.classList.toggle('off', info.blind); l.querySelectorAll('input, textarea').forEach(function (i) { i.disabled = info.blind; }); });
+        last = SC.paginate(doc.script, { paper: info.paper, sceneNumbers: info.scenes });
+        m.el.querySelector('[data-ex-n]').textContent = last.count;
+        m.el.querySelector('[data-ex-n-label]').textContent = (last.count === 1 ? 'page' : 'pages') + ' + the title page';
+        m.el.querySelector('[data-ex-checks]').innerHTML = SC.contestCheck(T.P, info, last).map(function (c) {
+          return '<li class="ex-c ' + c.lvl + '">' + UI.icon(ICON[c.lvl] || 'info') + '<span>' + esc(c.text) + '</span></li>';
+        }).join('');
+        m.el.querySelector('[data-ex-t]').innerHTML = SC.titleHtml(T.P, info);
+        m.el.querySelector('[data-ex-p1]').innerHTML = SC.pageHtml(last.pages[0] || [], 1, info);
+      }
+      function persist() {
+        if (T.readonly) { doc.title_page = read(); return; }
+        doc.title_page = read(); T.touch();
+      }
+      f.addEventListener('input', function () { clearTimeout(drawTimer); drawTimer = setTimeout(render, 140); });
+      f.addEventListener('change', function (e) {
+        if (e.target.name === 'preset') { f.blind.checked = !!(SC.PRESETS[f.preset.value] || {}).blind; }
+        render(); clearTimeout(saveTimer); saveTimer = setTimeout(persist, 400);
+      });
+      f.addEventListener('submit', function (e) { e.preventDefault(); });
+      m.el.querySelector('[data-ex-go]').addEventListener('click', function () {
+        clearTimeout(drawTimer); clearTimeout(saveTimer);
+        render(); persist();
+        var chosen = info, pag = last;
+        m.close();
+        printPages(chosen, pag);
+      });
+      render();
+    }
+    function printPages(info, pag) {
+      ['os-print', 'os-print-page'].forEach(function (id) { var o = document.getElementById(id); if (o) o.remove(); });
+      var box = document.createElement('div');
+      box.id = 'os-print'; box.className = 'pr-' + info.paper;
+      box.innerHTML = SC.titleHtml(T.P, info) + pag.pages.map(function (pg, k) { return SC.pageHtml(pg, k + 1, info); }).join('');
+      document.body.appendChild(box);
+      var st = document.createElement('style');
+      st.id = 'os-print-page';
+      st.textContent = '@page { size: ' + (info.paper === 'a4' ? '210mm 297mm' : '8.5in 11in') + '; margin: 0; }';
+      document.head.appendChild(st);
+      document.documentElement.classList.add('os-printing');
+      var title = document.title;
+      document.title = (T.P.title || 'screenplay').replace(/[^\w\- ]+/g, '').trim() || 'screenplay';   // the PDF's file name
+      function done() {
+        window.removeEventListener('afterprint', done);
+        document.documentElement.classList.remove('os-printing');
+        document.title = title; box.remove(); st.remove();
+      }
+      window.addEventListener('afterprint', done);
+      function go() { try { window.print(); } catch (err) { done(); UI.toast('This browser can\'t print from here. Try a desktop browser.', 'error'); } }
+      try {
+        if (document.fonts && document.fonts.check && !document.fonts.check('12pt "Courier Prime"')) { document.fonts.load('12pt "Courier Prime"').then(go, go); return; }
+      } catch (err) {}
+      go();
+    }
+
     draw();
-    return { destroy: function () { clearTimeout(statTimer); } };
+    return { destroy: function () { clearTimeout(statTimer); if (reader) reader.destroy(); reader = null; T.onSprint = null; } };
   };
 })();
 

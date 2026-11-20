@@ -81,7 +81,11 @@
     up: '<path d="m6 15 6-6 6 6"/>',
     down: '<path d="m6 9 6 6 6-6"/>',
     layers: '<path d="m12 3 9 5-9 5-9-5z"/><path d="m3 13 9 5 9-5"/>',
-    flash: '<path d="M13 3 5 14h6l-1 7 8-11h-6z"/>'
+    flash: '<path d="M13 3 5 14h6l-1 7 8-11h-6z"/>',
+    play: '<path d="M7 4.5v15l12.5-7.5z"/>',
+    pause: '<path d="M8 5v14M16 5v14"/>',
+    skipback: '<path d="M18 5v14L8 12z"/><path d="M6 5v14"/>',
+    skipfwd: '<path d="M6 5v14l10-7z"/><path d="M18 5v14"/>'
   };
   /* Light / dark: applied here, in <head>, so the first paint already has the right colours.
      Python (client_code/state.py) calls UI.setTheme when someone picks Auto / Light / Dark. */
